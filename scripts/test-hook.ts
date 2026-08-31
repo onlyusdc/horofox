@@ -13,16 +13,27 @@ const FORBIDDEN: [RegExp, string][] = [
   [/72\.9|72%/i, "폐기된 캐리 수치"],
 ];
 
-/** 반드시 있어야 하는 정직성 문구. */
-const REQUIRED_LANDING = [
-  ["수익을 약속하지 않습니다", "수익 미약속 고지"],
-  ["백테스트", "백테스트 언급"],
-  ["−5.65%", "무헤지 백테스트 수치"],
-  ["−0.60%", "델타중립 백테스트 수치"],
-  ["읽기 전용", "데모 한계 고지"],
-  ["투자 조언이 아닙니다", "면책"],
-  ["무인가 금융투자업", "규제 경고"],
-  ["0.1%", "수수료 공개"],
+/**
+ * 반드시 있어야 하는 정직성 문구.
+ * i18n 이후 문구는 랜딩이 아니라 **사전**에 산다 — 거기서 찾아야 한다.
+ * 한/영 둘 다 있어야 하므로 언어별로 확인한다.
+ */
+const REQUIRED_DICT: [string, string, string][] = [
+  ["수익을 약속하지 않습니다", "We do not promise returns", "수익 미약속 고지"],
+  ["백테스트", "backtested", "백테스트 언급"],
+  ["−5.65%", "−5.65%", "무헤지 백테스트 수치"],
+  ["−0.60%", "−0.60%", "델타중립 백테스트 수치"],
+  ["읽기 전용", "read-only", "데모 한계 고지"],
+  ["투자 조언이 아닙니다", "Not investment advice", "면책"],
+  ["무인가 금융투자업", "unlicensed brokerage", "규제 경고"],
+];
+
+/** 랜딩이 사전을 실제로 참조하는지 (키 존재). */
+const REQUIRED_KEYS = [
+  ["honest.noPromise", "수익 미약속 키"],
+  ["honest.backtest", "백테스트 키"],
+  ["hero.note", "데모 한계 키"],
+  ["footer.disclaimer", "면책 키"],
 ];
 const REQUIRED_README = [
   ["수익을 약속하지 않는다", "README 수익 미약속"],
@@ -44,20 +55,31 @@ async function main() {
     // README 는 백테스트 결과를 인용하므로 −5.65% 같은 음수는 허용된다.
     // 금지 패턴은 '번다'는 주장에만 걸리게 짜여 있다.
     const inReadme = re.test(readme);
+    const dictSrc = await fs.readFile("lib/i18n.ts", "utf8");
+    const inDict = re.test(dictSrc);
     t(`${label} 없음 (랜딩)`, !inLanding, inLanding ? re.exec(landing)?.[0] : "");
+    t(`${label} 없음 (사전)`, !inDict, inDict ? re.exec(dictSrc)?.[0] : "");
     t(`${label} 없음 (README)`, !inReadme, inReadme ? re.exec(readme)?.[0] : "");
   }
 
-  console.log("\n필수 고지 — 랜딩");
-  for (const [needle, label] of REQUIRED_LANDING) t(label, landing.includes(needle));
+  console.log("\n필수 고지 — 사전 (한/영 양쪽)");
+  const dict = await fs.readFile("lib/i18n.ts", "utf8");
+  for (const [ko, en, label] of REQUIRED_DICT) {
+    t(`${label} (한)`, dict.includes(ko));
+    t(`${label} (영)`, dict.includes(en));
+  }
+
+  console.log("\n랜딩이 그 키들을 실제로 렌더하는가");
+  for (const [key, label] of REQUIRED_KEYS) t(label, landing.includes(key));
+  t("수수료 공개", landing.includes("0.1%"));
 
   console.log("\n필수 고지 — README");
   for (const [needle, label] of REQUIRED_README) t(label, readme.includes(needle));
 
   console.log("\n훅 자체");
-  t("헤드라인이 접근을 말한다 (수익 아님)", landing.includes("온체인에서 산다"));
-  t("검증 가능성을 내세운다", landing.includes("GitHub") && landing.includes("코드"));
-  t("HIP-3 자산을 구체적으로 든다", /NVDA|S&P500|SK하이닉스/.test(landing));
+  t("헤드라인이 접근을 말한다 (수익 아님)", landing.includes("hero.title"));
+  t("검증 가능성을 내세운다", landing.includes("github.com/bigrender"));
+  t("HIP-3 자산을 구체적으로 든다", /NVDA|S&P500|SK하이닉스|SK Hynix/.test(await fs.readFile("lib/i18n.ts", "utf8")));
 
   console.log("\n실제 자산 수가 주장과 맞는가");
   process.env.HL_BUILDER_ADDRESS ||= "0x1111111111111111111111111111111111111111";
