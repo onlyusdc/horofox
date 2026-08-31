@@ -2,16 +2,69 @@
 // X402_PAY_TO 미설정 = 데모 모드(무료 실행). 설정하면 base-sepolia exact 스킴으로 검증·정산
 
 import { NextResponse } from "next/server";
-import { getUsdPrice } from "@/lib/price";
 import { portfolio } from "@/lib/ledger";
+import { assets, midPrice } from "@/lib/hl/trade";
+import { consume, subjectOf, CALLS_PER_PAYMENT } from "@/lib/quota";
+import { identify } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 const USDC_BASE_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-const MAX_AMOUNT = "10000"; // 0.01 USDC (6 decimals)
+// 호출당 가격. USDC 는 6 decimals 이므로 1000 = $0.001.
+// 랜딩에 표시하는 값과 반드시 같아야 한다 — 다르면 그건 거짓 광고다.
+const PRICE_USDC = 0.001;
+const MAX_AMOUNT = String(Math.round(PRICE_USDC * 1_000_000));
 
+// 팔 만한 데이터는 Hyperliquid 에서 온다.
+// 예전엔 CoinGecko 를 썼는데 공개 배포에서 403 으로 죽었다 — 무료 API 를
+// 유료 엔드포인트의 원천으로 쓰면 남의 레이트리밋에 사업이 묶인다.
 const TOOLS = {
-  price: async (params: URLSearchParams) => ({ ok: true, symbol: params.get("symbol"), usdPrice: await getUsdPrice(params.get("symbol") ?? "") }),
+  /** 퍼프 중간가. 코어 + HIP-3 전부. */
+  price: async (params: URLSearchParams) => {
+    const symbol = (params.get("symbol") ?? "").trim().toUpperCase();
+    if (!symbol) throw new Error("symbol 파라미터가 필요합니다");
+    return { ok: true, symbol, midPrice: await midPrice(symbol), source: "hyperliquid" };
+  },
+
+  /** 거래 가능한 시장 목록. HIP-3 토큰화 자산이 여기 들어간다. */
+  markets: async (params: URLSearchParams) => {
+    const map = await assets();
+    const uniq = [...new Set(map.values())];
+    const dex = params.get("dex");
+    const rows = uniq
+      .filter((a) => (dex ? a.dex === dex : true))
+      .map((a) => ({ symbol: a.symbol, dex: a.dex ?? "core", maxLeverage: a.maxLeverage }));
+    return { ok: true, count: rows.length, markets: rows.slice(0, 400), source: "hyperliquid" };
+  },
+
+  /** 펀딩률. 어느 쪽이 지불하는지 — 에이전트가 실제로 사는 정보다. */
+  funding: async (params: URLSearchParams) => {
+    const symbol = (params.get("symbol") ?? "").trim().toUpperCase();
+    if (!symbol) throw new Error("symbol 파라미터가 필요합니다");
+    const map = await assets();
+    const a = map.get(symbol);
+    if (!a) throw new Error(`Hyperliquid에 없는 심볼: ${symbol}`);
+    const body = a.dex
+      ? { type: "metaAndAssetCtxs", dex: a.dex }
+      : { type: "metaAndAssetCtxs" };
+    const res = await fetch("https://api.hyperliquid.xyz/info", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`Hyperliquid 응답 오류: HTTP ${res.status}`);
+    const [meta, ctxs] = (await res.json()) as [{ universe: { name: string }[] }, { funding: string; markPx: string }[]];
+    const i = meta.universe.findIndex((u) => u.name === a.name);
+    if (i < 0) throw new Error(`${symbol} 컨텍스트를 찾을 수 없습니다`);
+    const hourly = Number(ctxs[i]!.funding);
+    return {
+      ok: true, symbol, hourly,
+      annualisedPct: hourly * 24 * 365 * 100,
+      // 부호의 의미를 명시한다 — 에이전트가 방향을 뒤집어 해석하면 돈을 잃는다
+      paidBy: hourly >= 0 ? "longs pay shorts" : "shorts pay longs",
+      markPrice: Number(ctxs[i]!.markPx),
+      source: "hyperliquid",
+    };
+  },
+
   portfolio: async () => portfolio(),
 } as const;
 
@@ -54,6 +107,24 @@ async function handle(req: Request) {
 
   const resource = `${url.origin}/api/x402?tool=${toolName}`;
   const paymentHeader = req.headers.get("x-payment");
+
+  // 무료 한도. 결제 헤더가 있으면 결제 경로로 보내고 한도를 소모하지 않는다 —
+  // 돈을 낸 호출까지 무료분에서 깎으면 이중 과금이다.
+  if (!paymentHeader) {
+    const who = subjectOf(req, identify(req)?.userId ?? null);
+    const q = await consume(who);
+    if (!q.allowed) {
+      return NextResponse.json(
+        {
+          x402Version: 1,
+          error: "free quota exhausted",
+          quota: { used: q.used, freeLimit: q.freeLimit, credits: q.credits },
+          hint: `Settle over x402 to unlock ${CALLS_PER_PAYMENT} more calls.`,
+        },
+        { status: 402 },
+      );
+    }
+  }
 
   // 데모 모드: 수취 주소 미설정 → 무료 실행
   if (!process.env.X402_PAY_TO) {

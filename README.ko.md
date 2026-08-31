@@ -43,6 +43,75 @@ npx opennextjs-cloudflare build && npx wrangler deploy
 docker build -t agent-terminal . && docker run -p 3000:3000 --env-file .env.local agent-terminal
 ```
 
+## 🌏 다국어 (한국어 / English)
+
+의존성 없이 사전 하나로 돌린다. `lib/i18n.ts` 에 키를 추가하고 두 언어를 채우면 끝이다.
+
+- 첫 방문은 브라우저 언어를 따르고(`ko-*` 면 한국어), 이후 선택은 `localStorage` 에 남는다
+- `scripts/test-i18n.ts` 가 **누락·빈 번역·한/영 복붙**을 잡고,
+  `--coverage` 는 UI 파일에 한국어 하드코딩이 남았는지 검사한다
+- next-intl 을 쓰지 않은 이유: 라우팅이 `/ko` `/en` 으로 갈라지고 미들웨어가 붙는다. "더 심플하게"에서 멀어진다
+
+## 💳 사용량 한도 = 구독 (x402)
+
+Bankr 는 무료 하루 5메시지 → 월 $20 구독으로 푼다. 같은 구조를 **x402(USDC)** 로 옮겼다.
+카드사도 계정도 필요 없고, 부르는 쪽이 에이전트여도 스스로 낸다.
+
+| | 값 | 환경변수 |
+|---|---|---|
+| 무료 | 하루 20회 | `FREE_CALLS_PER_DAY` |
+| 결제 1회 | +100회 | `CALLS_PER_PAYMENT` |
+| 호출 단가 | $0.001 | `PRICE_USDC` (코드 상수) |
+
+```bash
+GET  /api/v1/quota    # 잔여 확인
+POST /api/v1/quota    # X-PAYMENT 헤더로 결제 → 크레딧 충전
+```
+
+- 결제한 호출은 무료분을 깎지 않는다 (이중 과금 방지)
+- **산 크레딧은 날짜가 바뀌어도 이월된다** — 무료분만 초기화
+- 저장소가 읽기 전용이면 방문자를 막지 않고 `degraded: true` 로 표시한다.
+  공개 데모에서 한도를 못 세는 건 우리 사정이지 방문자를 막을 이유가 아니다
+
+## ⚡ x402 유료 API
+
+에이전트가 HTTP 402 를 보고 USDC 로 스스로 결제한다. 툴 4종:
+
+| 툴 | 반환 |
+|---|---|
+| `price` | 퍼프 중간가 (코어 + HIP-3) |
+| `markets` | 거래 가능 시장 목록, `?dex=xyz` 로 필터 |
+| `funding` | 펀딩률 + **누가 지불하는지** (`longs pay shorts`) |
+| `portfolio` | 잔고 |
+
+```bash
+curl "$URL/api/x402?tool=funding&symbol=SKHX"
+```
+
+원래 CoinGecko 를 썼는데 배포 환경에서 403, 로컬에서 429 로 죽었다.
+**유료 API 의 원천을 남의 무료 API 에 두면 남의 레이트리밋에 사업이 묶인다** — Hyperliquid 로 갈아탔다.
+`lib/price.ts` 도 같은 이유로 HL 우선, CoinGecko 는 HL 에 없는 심볼(스테이블·밈코인)만 처리한다.
+
+## 🤖 소셜 봇 (텔레그램 · 디스코드)
+
+Bankr 가 2주에 96,000명을 모은 건 기능이 아니라 **소셜 안에 있었기 때문**이다.
+같은 엔진이 텔레그램·디스코드에서 그대로 돈다.
+
+```bash
+npm run bot          # 텔레그램 (롱폴링)
+npm run bot:discord  # 디스코드
+```
+
+토큰 발급:
+
+| 채널 | 발급처 | 주의 |
+|---|---|---|
+| 텔레그램 | [@BotFather](https://t.me/BotFather) → `/newbot` | — |
+| 디스코드 | [discord.com/developers](https://discord.com/developers) → Bot | **Message Content Intent** 를 켜야 메시지를 읽는다 |
+
+토큰이 없으면 봇은 조용히 죽지 않고 **무엇이 없는지와 어디서 받는지**를 출력하고 종료한다.
+`scripts/test-bots.ts` 가 그 동작을 검증한다.
+
 ## 🔒 보안 — 실제로 겪은 사고와 방어
 
 ### ⚠️ 빌드 시 시크릿이 번들에 박혔던 일

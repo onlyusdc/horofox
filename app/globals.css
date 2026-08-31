@@ -495,3 +495,41 @@ body {
 .honesty ul { list-style: none; display: grid; gap: 12px; }
 .honesty li { color: #8a90a2; font-size: 14.5px; line-height: 1.65; }
 .honesty li b { color: #e7e9ee; }
+
+/* ── 언어 전환 ─────────────────────────────────────── */
+.lang-switch { display: inline-flex; border: 1px solid #23283a; border-radius: 999px; overflow: hidden; margin-right: 14px; }
+.lang-switch button {
+  background: transparent; border: 0; color: #5a6072; font-size: 12px; font-weight: 700;
+  padding: 5px 11px; cursor: pointer; font-family: inherit;
+}
+.lang-switch button:hover { color: #c9cfdd; }
+.lang-switch .lang-on { background: rgba(34,197,94,.13); color: #5be584; }
+
+/* ── 라이브 티커 (랜딩 첫 증거) ──────────────────────── */
+.ticker {
+  max-width: 900px; margin: 0 auto 44px; padding: 22px 24px;
+  border: 1px solid #15803d; border-radius: 16px;
+  background: linear-gradient(120deg, rgba(34,197,94,.07), transparent 70%);
+}
+.ticker-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.ticker-head b { font-size: 15px; color: #5be584; letter-spacing: .04em; }
+.ticker-rows { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 720px) { .ticker-rows { grid-template-columns: repeat(2, 1fr); } }
+.ticker-cell { display: flex; flex-direction: column; gap: 2px; }
+.tk-sym { font-size: 11px; letter-spacing: .08em; color: #5a6072; font-weight: 700;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.tk-px { font-size: 21px; font-weight: 800; letter-spacing: -.02em;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+.tk-label { font-size: 12px; color: #8a90a2; }
+.ticker-stats {
+  display: flex; gap: 24px; flex-wrap: wrap; margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid #23283a; font-size: 13px; color: #8a90a2;
+}
+.ticker-stats b { color: #e7e9ee; font-size: 15px; }
+
+/* ── 페이퍼 경고 (진짜처럼 보이면 안 되는 것들) ────────── */
+.paper-warn {
+  border: 1px solid #6b5320; border-radius: 10px; padding: 11px 14px; margin: 10px 0 14px;
+  background: rgba(245, 185, 74, 0.07); color: #8a90a2; font-size: 13.5px; line-height: 1.6;
+}
+.paper-warn b { color: #f5b94a; }

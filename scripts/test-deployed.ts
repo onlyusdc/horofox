@@ -16,11 +16,23 @@ async function main() {
     const home = await get("/");
     const html = await home.text();
     t("랜딩 200", home.status === 200, `HTTP ${home.status}`);
-    t("훅 헤드라인 렌더", html.includes("온체인에서 산다"));
-    t("정직성 섹션 렌더", html.includes("수익을 약속하지 않습니다"));
+    t("훅 헤드라인 렌더 (기본 영어)", html.includes("Buy Nvidia on-chain"));
+    t("정직성 섹션 렌더", html.includes("do not promise returns"));
     t("백테스트 수치 노출", html.includes("5.65"));
-    t("읽기 전용 고지", html.includes("읽기 전용"));
-    t("규제 경고", html.includes("무인가 금융투자업"));
+    t("읽기 전용 고지", html.includes("read-only"));
+    t("규제 경고", html.includes("unlicensed brokerage"));
+    t("언어 전환 UI", html.includes("lang-switch") && html.includes("한국어"));
+    // 사전은 클라이언트 컴포넌트라 초기 HTML 이 아니라 JS 청크에 들어간다.
+    // HTML 만 보면 오탐이므로 실제 번들을 받아 확인한다.
+    const chunk = /src="(\/_next\/static\/chunks\/app\/page-[^"]+\.js)"/.exec(html)?.[1]
+      ?? /src="(\/_next\/static\/chunks\/[^"]+\.js)"/.exec(html)?.[1];
+    let koInBundle = false;
+    if (chunk) {
+      const js = await (await get(chunk)).text();
+      koInBundle = js.includes("엔비디아") || js.includes("채팅으로");
+    }
+    t("한국어 사전이 JS 번들에 포함", koInBundle, chunk ?? "청크 못 찾음");
+    t("라이브 티커 렌더", html.includes("ticker"));
 
     const dash = await get("/dashboard");
     t("대시보드 200", dash.status === 200, `HTTP ${dash.status}`);
