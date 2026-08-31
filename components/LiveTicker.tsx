@@ -49,9 +49,13 @@ export default function LiveTicker() {
           WATCH.map(([sym, ko, en]) => ({ sym, label: lang === "ko" ? ko : en, px: bySym.get(sym) ?? 0 }))
             .filter((r) => r.px > 0),
         );
-        const hip3 = meta.universe.filter((u) => !u.isDelisted).length;
-        setCounts({ total: 177 + hip3, hip3 });
         setFailed(false);
+
+        // 총계는 브라우저에서 조립하지 않는다. 서버가 실제로 주문 가능한 자산을 센 값을 쓴다.
+        const m = (await fetch("/api/v1/metrics")
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)) as { coverage?: { total: number; hip3: number } } | null;
+        if (alive && m?.coverage) setCounts({ total: m.coverage.total, hip3: m.coverage.hip3 });
       } catch {
         if (alive) setFailed(true);
       }

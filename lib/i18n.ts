@@ -33,8 +33,8 @@ export const DICT = {
     en: "Buy Nvidia on-chain, by chatting",
   },
   "hero.sub": {
-    ko: "Hyperliquid HIP-3 시장에는 토큰화된 주식·지수·원자재가 올라와 있습니다. 이 에이전트는 그 280종에 도달하고, 진짜 주문에 서명합니다.",
-    en: "Hyperliquid's HIP-3 markets list tokenized stocks, indices and commodities. This agent reaches all 280 of them and signs real orders.",
+    ko: "Hyperliquid HIP-3 시장에는 토큰화된 주식·지수·원자재가 올라와 있습니다. 이 에이전트는 그 전부에 도달하고, 진짜 주문에 서명합니다.",
+    en: "Hyperliquid's HIP-3 markets list tokenized stocks, indices and commodities. This agent reaches every one of them and signs real orders.",
   },
   "hero.cta.try": { ko: "터미널 열어보기", en: "Open the terminal" },
   "hero.cta.code": { ko: "GitHub에서 코드 보기", en: "Read the code on GitHub" },
@@ -146,6 +146,44 @@ export const DICT = {
     ko: "오늘 무료 한도를 다 썼습니다. USDC 로 결제하면 계속 쓸 수 있습니다.",
     en: "Free quota is used up for today. Settle in USDC to keep going.",
   },
+  // ── 지표 공개 ─────────────────────────────────────
+  "nav.metrics": { ko: "지표", en: "Metrics" },
+  "metrics.title": { ko: "공개 지표", en: "Public metrics" },
+  "metrics.sub": {
+    ko: "이 페이지의 모든 수치는 요청 시점에 측정합니다. 실거래와 페이퍼는 절대 합산하지 않습니다.",
+    en: "Every number here is measured at request time. Live and paper are never summed.",
+  },
+  "metrics.live": { ko: "온체인 (실제)", en: "On-chain (real)" },
+  "metrics.liveNote": {
+    ko: "Hyperliquid 가 프로토콜 차원에서 지급한 금액입니다.",
+    en: "Amounts Hyperliquid paid out at the protocol level.",
+  },
+  "metrics.paper": { ko: "페이퍼 (시뮬레이션)", en: "Paper (simulated)" },
+  "metrics.paperNote": {
+    ko: "가상의 수치입니다. 위 항목과 더하지 마세요 — 단위가 다릅니다.",
+    en: "Simulated figures. Do not add them to the section above — different units.",
+  },
+  "metrics.builderFees": { ko: "누적 builder 수수료", en: "Cumulative builder fees" },
+  "metrics.converted": { ko: "크레딧으로 전환한 금액", en: "Converted into credits" },
+  "metrics.fundedCalls": { ko: "수수료로 산 추론 호출", en: "Inference calls paid by fees" },
+  "metrics.launchpadFees": { ko: "런치패드 수수료", en: "Launchpad fees" },
+  "metrics.swapFees": { ko: "스왑 수수료", en: "Swap fees" },
+  "metrics.trades": { ko: "기록된 거래", en: "Recorded trades" },
+  "metrics.coverage": { ko: "도달 가능한 시장", en: "Markets we can reach" },
+  "metrics.total": { ko: "전체 자산", en: "Total assets" },
+  "metrics.crypto": { ko: "크립토", en: "Crypto" },
+  "metrics.equities": { ko: "토큰화 주식", en: "Tokenized equities" },
+  "metrics.indices": { ko: "지수·원자재", en: "Indices & commodities" },
+  "metrics.loop": { ko: "자가자금 루프", en: "The self-funding loop" },
+  "metrics.loopDesc": {
+    ko: "토큰을 발행해 자금을 조달하는 대신, 거래 흐름의 0.1% 로 에이전트가 자기 추론비를 냅니다.",
+    en: "Instead of minting a token to raise funds, the agent pays its own inference bill out of 0.1% of trade flow.",
+  },
+  "metrics.loopStep1": { ko: "당신이 거래한다", en: "You trade" },
+  "metrics.loopStep2": { ko: "주문에 builder code 가 붙는다 (0.1%)", en: "A builder code rides on the order (0.1%)" },
+  "metrics.loopStep3": { ko: "수수료가 온체인에 쌓인다", en: "Fees accrue on-chain" },
+  "metrics.loopStep4": { ko: "그 수수료가 LLM 크레딧이 된다", en: "Those fees become LLM credits" },
+  "metrics.measuredAt": { ko: "측정 시각", en: "Measured at" },
 } as const;
 
 export type DictKey = keyof typeof DICT;

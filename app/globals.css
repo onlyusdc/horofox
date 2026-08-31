@@ -533,3 +533,65 @@ body {
   background: rgba(245, 185, 74, 0.07); color: #8a90a2; font-size: 13.5px; line-height: 1.6;
 }
 .paper-warn b { color: #f5b94a; }
+
+/* ── 공개 지표 화면 ─────────────────────────────────
+   실거래와 페이퍼를 시각적으로도 갈라놓는다. 배지 색이 다른 이유가 그거다. */
+.stat-list {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.stat-list > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.stat-list dt {
+  color: var(--dim);
+  font-size: 13px;
+}
+.stat-list dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.badge-live,
+.badge-paper {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge-live {
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  background: rgba(74, 222, 128, 0.08);
+}
+.badge-paper {
+  color: var(--dim);
+  border: 1px solid var(--border);
+  background: transparent;
+}
+.loop-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  justify-content: center;
+}
+.loop-step {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+.loop-step b {
+  color: var(--accent);
+  margin-right: 6px;
+}

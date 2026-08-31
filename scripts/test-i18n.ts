@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 
 const COVERAGE = process.argv.includes("--coverage");
 /** 다국어를 적용해야 하는 화면. 여기 한국어가 박혀 있으면 영어 사용자에게 깨져 보인다. */
-const UI_FILES = ["app/page.tsx", "components/LiveTicker.tsx", "components/LangProvider.tsx"];
+const UI_FILES = ["app/page.tsx", "app/metrics/page.tsx", "components/LiveTicker.tsx", "components/LangProvider.tsx"];
 
 async function main() {
   const { DICT, LANGS, t, detectLang, LANG_LABEL } = await import("../lib/i18n");

@@ -28,6 +28,7 @@ export default function Landing() {
         <span className="brand">agent-terminal</span>
         <span className="nav-links">
           <LangSwitch />
+          <Link href="/metrics">{t("nav.metrics")}</Link>
           <a href="/dashboard">{t("nav.dashboard")}</a>
           <Link href="/terminal" className="nav-cta">{t("nav.terminal")}</Link>
         </span>

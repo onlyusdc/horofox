@@ -1,8 +1,61 @@
 # Agent Terminal
 
-**An open-source, self-hostable alternative to [Bankr](https://bankr.bot)** — an AI agent you talk to in plain language to trade crypto: price checks, swaps, perpetuals, and token launches, from a web terminal, chat bots, CLI, or REST API.
+**An open-source, self-hostable alternative to [Bankr](https://bankr.bot)** — an AI agent you talk to in plain language: price checks, swaps, perpetuals and token launches, from a web terminal, chat bots, CLI, or REST API. Unlike Bankr, it reaches Hyperliquid's HIP-3 markets, so "buy Nvidia" is a real tokenized equity perp rather than a meme coin named after one.
 
-> ⚠️ Paper trading demo — swaps and perps execute at real market prices but settle in a local ledger. No on-chain transactions, no custody, not financial advice.
+> ⚠️ Swaps and the launchpad are paper — they price against real markets but settle in a local ledger. Perps sign real Hyperliquid orders when `HL_MODE=live`. No custody, not financial advice.
+
+## The edge: the agent pays its own bills out of trade flow
+
+Bankr's flywheel is **mint a token → collect its swap fees → fund the agent's inference**. Two things are wrong with copying it:
+
+1. **Most of that fee isn't theirs.** Their own terminal states the pool charges a **0.7% swap fee, 95% of which goes to the token's creator** — leaving roughly 1/19 for the platform. The launchpad is customer acquisition, not the revenue.
+2. **It's tied to the meme-coin cycle.** Launch revenue is not a floor; it fell **~92% from peak** in the public monthly data.
+
+We run the same loop on **trading** instead of **minting**:
+
+```
+you trade  →  a builder code rides on the order (0.1%)
+           →  Hyperliquid pays that fee on-chain
+           →  the fee converts into LLM credits
+           →  the agent pays for its own inference
+```
+
+Why this is defensible:
+
+- **The protocol pays it, not a middleman.** Builder codes are a Hyperliquid primitive, so it isn't the kind of fee a competitor can undercut to 0% as a growth tactic.
+- **No token to launch.** No contract, no audit, no unlock schedule, no cycle risk.
+- **Bankr routes Hyperliquid trades and doesn't collect this.** Their Hyperliquid reference (`skills/bankr/references/hyperliquid.md`, 192 lines) mentions "builder" exactly once — in the phrase *"HIP-3 builder-deployed dexes"* — and never as a fee they take.
+
+Where it lives in the code — three pieces that used to be unconnected:
+
+| Piece | File | Job |
+| --- | --- | --- |
+| Fee attachment | `lib/hl/core.ts` | every order action carries `builder`; the field is non-optional |
+| On-chain read | `lib/hl/revenue.ts` | reads cumulative builder rewards from Hyperliquid |
+| Conversion | `lib/selffund.ts` | turns settled fees into LLM credits, **idempotently** |
+
+Settlement is idempotent by ledger: `data/selffund.json` records the cumulative amount already converted, so calling it twice grants nothing the second time. Verify:
+
+```bash
+npx tsx scripts/test-selffund.ts        # 24 assertions, incl. double-spend attempts
+npx tsx scripts/test-selffund.ts --api  # endpoint + operator-only settlement
+```
+
+### Coverage, measured rather than claimed
+
+`GET /api/v1/metrics` counts what we can actually place orders against, at request time:
+
+```
+280 assets = 177 crypto (main perp dex) + 103 HIP-3
+             HIP-3 = 93 tokenized equities + 10 indices & commodities
+             sample: TSLA NVDA HOOD INTC PLTR COIN META
+```
+
+Reproduce with `npx tsx scripts/test-coverage.ts`. The test also fails if a constant total is reintroduced into the UI — the landing page previously composed `177 + hip3` client-side, and a hardcoded number is not evidence.
+
+### Public metrics never sum real and paper
+
+`/metrics` publishes the numbers, but `live` and `paper` are separate objects that **share no field names**, and there is no combined total anywhere in the payload — you cannot add them by accident because the shape doesn't offer it. `scripts/test-public-metrics.ts` asserts exactly that, including that no exposed value equals a live+paper sum.
 
 https://github.com/user-attachments/assets/demo-placeholder
 <!-- Record a 15–30s demo (terminal + dashboard) and replace the line above with the real GIF:
