@@ -8,5 +8,12 @@
   // lib/storage.ts 가 그걸 ReadOnlyStorageError 로 잡아 사용자에게 보여준다.
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // 비밀이 아닌 설정. 실제 API 키는 `wrangler secret put OPENAI_API_KEY` 로만 넣는다.
+  "vars": {
+    "OPENAI_BASE_URL": "https://api.z.ai/api/coding/paas/v4",
+    "OPENAI_MODEL": "glm-5.3-flash",
+    "HL_MODE": "paper",
+    "HL_NETWORK": "mainnet"
+  }
 }

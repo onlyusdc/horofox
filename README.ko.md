@@ -68,15 +68,32 @@ npx tsx scripts/test-posture.ts     # 배포본 보안 상태 점검
 
 **절대 `npx opennextjs-cloudflare build && npx wrangler deploy` 를 직접 쓰지 말 것.** 방어가 통째로 빠진다.
 
-### 운영 시크릿 주입
+### 운영 시크릿 주입 — 빌드가 아니라 런타임에
 
-빌드가 아니라 런타임에 넣는다.
+키는 **Cloudflare 쪽에 암호화 저장**되고 번들에도 레포에도 남지 않는다.
 
 ```bash
-npx wrangler secret put AGENT_API_KEY
-npx wrangler secret put OPENAI_API_KEY     # z.ai 키를 여기 넣는다 (아래 참고)
-npx wrangler secret put USER_ENCRYPTION_KEY
+printf '%s' "$KEY" | npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put AGENT_API_KEY        # API 를 잠그려면
+npx wrangler secret put USER_ENCRYPTION_KEY  # 멀티유저를 쓰려면
 ```
+
+비밀이 **아닌** 설정(base URL·모델명·모드)은 `wrangler.jsonc` 의 `vars` 에 둔다.
+시크릿과 설정을 섞지 않는 게 사고를 줄인다.
+
+### 공개 데모의 채팅 남용 방어
+
+데모는 LLM 키가 붙은 채로 열려 있다. 무제한이면 누구든 크레딧을 태울 수 있으므로
+한 번의 호출 비용을 코드로 묶었다 (`app/api/chat/route.ts`).
+
+| 상한 | 값 | 초과 시 |
+|---|---|---|
+| 대화 턴 | 20 | 413 |
+| 요청 문자 수 | 8,000 | 413 |
+| 응답 토큰 | 800 | 잘림 |
+| 툴 호출 반복 | 5 | 중단 |
+
+크레딧이 계속 빠지면 `AGENT_API_KEY` 를 넣어 API 전체를 잠그면 된다.
 
 ### LLM 은 z.ai(GLM) 를 쓴다
 
