@@ -43,6 +43,56 @@ npx opennextjs-cloudflare build && npx wrangler deploy
 docker build -t agent-terminal . && docker run -p 3000:3000 --env-file .env.local agent-terminal
 ```
 
+## 🔒 보안 — 실제로 겪은 사고와 방어
+
+### ⚠️ 빌드 시 시크릿이 번들에 박혔던 일
+
+**Next 는 빌드 중 `.env.local` 을 읽어 `process.env.X` 참조를 번들에 인라인한다.**
+그대로 배포했더니 LLM API 키가 Worker 코드 안에 평문으로 실려 나갔다.
+브라우저로 노출되진 않았지만(서버 사이드 번들), 열려 있던 `/api/chat` 을 통해
+**누구나 그 키의 크레딧을 태울 수 있는 상태**였다.
+
+같은 경로로 `data/` 전체 — `users.json`(유저 지갑 암호문) 포함 — 도 번들에 들어갔다.
+
+**방어 (3중)**
+
+1. `scripts/deploy-cf.sh` 가 빌드 동안 `.env.local` 을 치운다 (`trap` 으로 복구)
+2. 빌드 후 `.open-next` 에서 `data/`·`.env*` 를 삭제하고, 시크릿이 남아 있으면 **배포를 중단**한다
+3. `scripts/test-nosecrets.ts` 가 번들 전 파일을 훑어 실제 `.env.local` 값이 있는지 검사한다
+
+```bash
+./scripts/deploy-cf.sh          # 이걸로만 배포할 것
+npx tsx scripts/test-nosecrets.ts   # 번들 청결 검사
+npx tsx scripts/test-posture.ts     # 배포본 보안 상태 점검
+```
+
+**절대 `npx opennextjs-cloudflare build && npx wrangler deploy` 를 직접 쓰지 말 것.** 방어가 통째로 빠진다.
+
+### 운영 시크릿 주입
+
+빌드가 아니라 런타임에 넣는다.
+
+```bash
+npx wrangler secret put AGENT_API_KEY
+npx wrangler secret put OPENAI_API_KEY     # z.ai 키를 여기 넣는다 (아래 참고)
+npx wrangler secret put USER_ENCRYPTION_KEY
+```
+
+### LLM 은 z.ai(GLM) 를 쓴다
+
+변수명이 `OPENAI_*` 인 건 SDK 가 OpenAI 호환 규약을 따르기 때문이고, 실제 제공자는 z.ai 다.
+
+```bash
+OPENAI_API_KEY=<z.ai 키>
+OPENAI_BASE_URL=https://api.z.ai/api/coding/paas/v4
+OPENAI_MODEL=glm-5.3-flash
+```
+
+### 배포본이 자기 상태를 밝힌다
+
+`GET /api/v1/mode` 가 `warnings`·`storage`·`llm` 을 함께 반환한다.
+인증 없이 열려 있으면 스스로 경고한다 — 숨기면 운영자가 모르고 지나간다.
+
 ## 🔐 인증
 
 API 는 `lib/auth.ts` 가 신원을 판정한다. **클라이언트가 보낸 `X-User-Id` 같은 헤더는 읽지 않는다** —

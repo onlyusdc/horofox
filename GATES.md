@@ -59,20 +59,30 @@ Scope: 코드는 끝났고 **사람이 올 이유(훅)** 와 **공개 가능 상
   EXPECT: /LIVE-DATA OK/
   EVIDENCE: ✓ 없는 심볼 → 400 | LIVE-DATA OK — 실제 HL 데이터, HIP-3 포함
 
-- [ ] G6: 회귀 없음 — 기존 검증 14종 전부 통과.
+- [x] G6: 회귀 없음 — 기존 검증 14종 전부 통과.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'F=0; for s in hl-engine hl-live builder mode sign safety revenue users multiuser testnet-sign rest mode-api dashboard; do npx tsx scripts/test-$s.ts >/dev/null 2>&1 || { echo "FAIL $s"; F=1; }; done; npx tsx scripts/testnet-trade.ts --probe 2>&1 | grep -q "EXCHANGE RESPONDED" || { echo "FAIL probe"; F=1; }; [ $F = 0 ] && echo NO-REGRESSION || echo REGRESSED'
   EXPECT: /NO-REGRESSION/
-  EVIDENCE: pending
+  EVIDENCE: NO-REGRESSION
 
 - [x] G7: 빌드·타입 클린.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'T=$(npx tsc --noEmit 2>&1 | wc -l | tr -d " "); B=$(npm run build 2>&1 | grep -c "Compiled successfully"); echo "tsc=$T build=$B"; [ "$T" = 0 ] && [ "$B" -ge 1 ] && echo BUILD-OK || echo BUILD-BROKEN'
   EXPECT: /BUILD-OK/
   EVIDENCE: tsc=0 build=1 | BUILD-OK
 
-- [ ] G8: 커밋 완료 — 미커밋 변경 0, 시크릿·유저데이터 미포함.
+- [x] G8: 커밋 완료 — 미커밋 변경 0, 시크릿·유저데이터 미포함.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'D=$(git status --porcelain | grep -c . | tr -d " "); S=$(git ls-files | grep -cE "^\.env$|^data/" || true); echo "dirty=$D tracked_secrets=$S"; [ "$D" = 0 ] && [ "$S" = 0 ] && echo COMMIT-OK || echo COMMIT-DIRTY'
   EXPECT: /COMMIT-OK/
-  EVIDENCE: pending
+  EVIDENCE: dirty=0 tracked_secrets=0 | COMMIT-OK
+
+- [x] G11: 배포 번들에 시크릿·런타임 상태가 없다. (실제로 한 번 유출됐다 — 재발 방지)
+  CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-nosecrets.ts 2>&1 | tail -10
+  EXPECT: /NOSECRETS OK/
+  EVIDENCE: ✓ trap 으로 .env.local 을 복구한다 | NOSECRETS OK — 번들 청결
+
+- [x] G12: 배포본이 자기 보안 상태를 밝힌다 — 인증 경고·저장소·LLM 설정 여부.
+  CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-posture.ts 2>&1 | tail -10
+  EXPECT: /POSTURE OK/
+  EVIDENCE: ✓ LLM 미설정 시 크레딧 소모 불가  HTTP 503 | POSTURE OK — 상태를 숨기지 않음
 
 - [x] G9: 플레이스홀더 0건.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && grep -rnE "TODO|FIXME|not implemented" lib/ scripts/ app/ 2>/dev/null | wc -l

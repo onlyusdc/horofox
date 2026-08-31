@@ -8,6 +8,8 @@
 import { NextResponse } from "next/server";
 import { perpMode } from "@/lib/perps";
 import { BUILDER_ADDRESS, IS_TESTNET, PERP_FEE_PERCENT } from "@/lib/hl/config";
+import { authWarning } from "@/lib/auth";
+import { isWritable } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -31,6 +33,10 @@ export async function GET(req: Request) {
       builder: BUILDER_ADDRESS || null,
       feePercent: PERP_FEE_PERCENT,
       network: IS_TESTNET ? "testnet" : "mainnet",
+      // 이 인스턴스가 스스로의 상태를 밝힌다 — 숨기면 운영자가 모르고 넘어간다.
+      warnings: [authWarning()].filter(Boolean),
+      storage: (await isWritable()) ? "writable" : "read-only",
+      llm: process.env.OPENAI_API_KEY ? "configured" : "not-configured",
     });
   } catch (e) {
     return NextResponse.json(
