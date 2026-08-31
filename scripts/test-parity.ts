@@ -2,6 +2,7 @@
 // 실행: npm run test:parity
 
 import { getPerpMid, openPerp, getPerpPositions, closePerp } from "../lib/perps";
+import { resetPaperState } from "./_reset-paper";
 import { launchToken, buyToken, sellToken, getLaunchpad, priceOf } from "../lib/launchpad";
 import { onchainBalance } from "../lib/wallet";
 import { tools } from "../lib/tools";
@@ -17,15 +18,6 @@ function check(name: string, cond: boolean, detail?: unknown) {
 // 두 번째 실행부터 "이미 발행됨"·"포지션 이미 있음"으로 깨진다.
 const RUN = String(Date.now()).slice(-5);
 const SYM = `PT${RUN}`;
-
-async function resetPaperState() {
-  const fs = await import("node:fs/promises");
-  const path = await import("node:path");
-  // 페이퍼 원장·포지션만 초기화한다. users.json 은 건드리지 않는다.
-  for (const [f, empty] of [["perps.json", { positions: [] }], ["tokens.json", { tokens: {} }]] as const) {
-    await fs.writeFile(path.join(process.cwd(), "data", f), JSON.stringify(empty, null, 2) + "\n", "utf8").catch(() => {});
-  }
-}
 
 async function main() {
   await resetPaperState();

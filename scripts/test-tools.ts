@@ -2,8 +2,10 @@
 // 실행: npm run test:tools
 
 import { tools } from "../lib/tools";
+import { resetPaperState } from "./_reset-paper";
 
 async function main() {
+  await resetPaperState(); // 반복 실행 가능하게
   console.log("=== 1. getPrice (실데이터) ===");
   const price = await tools.getPrice.execute!({ symbol: "eth" }, { toolCallId: "t1", messages: [] });
   console.log(JSON.stringify(price, null, 2));
