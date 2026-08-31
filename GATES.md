@@ -79,8 +79,8 @@ Scope: 코드는 끝났고 **사람이 올 이유(훅)** 와 **공개 가능 상
   EXPECT: /^\s*0\s*$/
   EVIDENCE: 0
 
-- [ ] G10: README 가 배포 현실을 담는다 — 데모 URL, 읽기전용 한계, 셀프호스트 안내, 인증.
-  EVIDENCE: pending
+- [x] G10: README 가 배포 현실을 담는다 — 데모 URL, 읽기전용 한계, 셀프호스트 안내, 인증.
+  EVIDENCE: 실물 대조 완료. (1) README 의 데모 URL https://agent-terminal.xpost.workers.dev 가 실제 HTTP 200. (2) 문서화한 env 2종이 lib/auth.ts 에 실재 — AGENT_API_KEY, USER_API_KEYS. (3) 안내한 명령이 실행 가능 — opennextjs-cloudflare 설치됨, Dockerfile 존재. (4) ReadOnlyStorageError 가 lib/storage.ts 에 4곳 정의·사용. (5) **결정적**: 배포본에 POST /api/v1/perp 를 실제로 쏘니 `{"ok":false,"error":"저장할 수 없습니다 (perps.json). 이 환경은 파일시스템이 읽기 전용입니다…"}` 가 돌아옴 — README 가 주장한 "쓰기는 명시적으로 실패한다"가 배포 환경에서 실증됨.
 
 <!--
 - 체크박스는 gate-check.mjs 가 CHECK 실행 후 EXPECT 매칭되면 뒤집는다.
