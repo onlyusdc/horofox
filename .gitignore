@@ -1,0 +1,19 @@
+# 의존성/빌드
+node_modules/
+.next/
+out/
+
+# 시크릿 — 절대 커밋 금지 (.env.example만 허용)
+.env
+.env.*
+!.env.example
+
+# 런타임 상태 (장부/퍼펫/토큰/사용량/저널)
+data/
+
+# 기타
+*.log
+.DS_Store
+
+# 사업 전략 문서 — 비공개 유지
+marketing/

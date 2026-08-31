@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent Terminal — 프로젝트 리포트</title>
+<style>
+  :root { --bg:#0a0e14; --panel:#11161f; --border:#1e2836; --text:#d6e2f0; --dim:#6b7a8f; --accent:#4ade80; --accent-dim:#14532d; --warn:#fbbf24; --err:#f87171; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:14px; line-height:1.7; }
+  .wrap { max-width:920px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; } h2 { font-size:18px; margin:48px 0 14px; border-bottom:1px solid var(--border); padding-bottom:8px; } h3 { font-size:15px; margin:20px 0 8px; }
+  .tag { color:var(--accent); font-size:13px; }
+  .meta { color:var(--dim); font-size:12px; margin-bottom:28px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+  th,td { text-align:left; padding:8px 10px; border:1px solid var(--border); vertical-align:top; }
+  th { background:var(--panel); color:var(--dim); font-weight:500; }
+  .ok { color:var(--accent); } .warn { color:var(--warn); } .dim { color:var(--dim); }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; margin:12px 0; }
+  .callout { border-left:3px solid var(--accent); background:rgba(20,83,45,.15); padding:12px 16px; border-radius:0 6px 6px 0; margin:14px 0; }
+  .callout.warn { border-color:var(--warn); background:rgba(251,191,36,.08); }
+  code, pre { background:var(--panel); border:1px solid var(--border); border-radius:6px; }
+  code { padding:1px 6px; font-size:12.5px; }
+  pre { padding:14px; overflow-x:auto; font-size:12.5px; }
+  .num { color:var(--accent); font-weight:700; }
+  ul { padding-left:20px; } li { margin:4px 0; }
+  a { color:var(--accent); }
+  .q { font-size:16px; font-weight:700; margin-bottom:8px; }
+  .layer { display:flex; gap:10px; align-items:center; margin:6px 0; }
+  .layer .box { border:1px solid var(--border); background:var(--panel); border-radius:6px; padding:8px 14px; }
+  .arrow { color:var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Agent Terminal <span class="tag">→ 제2의 Bankr</span></h1>
+<p class="meta">리포트 생성: 2026-08-31 · 프로젝트: /Users/minpro/ZCodeProject/agent-terminal · 라이브 데모: <a href="/">localhost:3002</a> / <a href="/terminal">터미널</a></p>
+
+<h2>0. 먼저 궁금했던 것: Bankr가 메인넷이야? 토큰이야?</h2>
+
+<div class="card">
+  <p class="q">Q. Bankr는 메인넷(블록체인)인가?</p>
+  <p><strong>아니요.</strong> Bankr는 체인이 아니라 <strong>그 위에서 돌아가는 서비스(인프라)</strong>입니다. 공식 문서 표현 그대로 "Infrastructure for self-sustaining AI agents" — 지갑·거래·보안을 대신 처리해주는 플랫폼이고, 실제 거래는 <strong>Base(코인베이스 체인)를 주력</strong>으로 이더리움·솔라나·아비트럼·BNB·Hyperliquid 등 10개 기존 체인에서 실행됩니다.</p>
+
+  <p class="q" style="margin-top:18px">Q. 토큰은 뭐야?</p>
+  <p>두 가지가 섞여 있어서 헷갈리는 겁니다:</p>
+  <ul>
+    <li><strong>BNKR (BankrCoin)</strong> — Bankr의 자체 토큰. 실시간 데이터(DexScreener) 기준 <span class="num">Base 체인</span>에서 거래 중, 가격 <span class="num">≈ $0.00027</span>, 시가총액 <span class="num">≈ $2,590만</span>, Uniswap V3·Aerodrome 등에 상장. (Robinhood 체인에도 소규모 버전 존재. 이더리움의 동명 토큰들은 거래량 $0.01 수준의 <span class="warn">사칭 토큰</span>이니 주의)</li>
+    <li><strong>유저/에이전트가 발행하는 토큰</strong> — Bankr의 핵심 기능. 에이전트가 자기 토큰을 페어런치로 발행하고, 그 토큰의 <strong>거래 수수료가 에이전트의 LLM 비용으로 순환</strong>하는 구조. `bankr launch` 한 줄.</li>
+  </ul>
+
+  <p class="q" style="margin-top:18px">Q. 관계 정리</p>
+  <div class="layer"><div class="box">체인 (메인넷)<br /><span class="dim">Base 등 10개</span></div><span class="arrow">← Bankr는 이 위에서</span><div class="box">서비스 (Bankr)<br /><span class="dim">지갑·스왑·런치패드·봇</span></div><span class="arrow">← 토큰은 별개로</span><div class="box">토큰 (BNKR)<br /><span class="dim">Base 위 ERC-20</span></div></div>
+</div>
+
+<h2>1. 오늘의 진행: "돈이 되는 프로덕트 레벨" 작업</h2>
+
+<table>
+  <tr><th>작업</th><th>내용</th><th>상태</th></tr>
+  <tr><td>랜딩 페이지 <code>/</code></td><td>마케팅 1순위 훅("지갑 연결 없이, 채팅 한 줄로 매수") + 기능 그리드 + API 가격 + CTA. 터미널은 <code>/terminal</code>로 분리</td><td class="ok">✅ 완료</td></tr>
+  <tr><td>체결 웹훅</td><td><code>WEBHOOK_URL</code> 설정 시 스왑/퍼펫/런치 매매 이벤트 POST — Bankr 부품 마지막 퍼즐. 실패해도 본 거래 무영향</td><td class="ok">✅ 완료</td></tr>
+  <tr><td>트레이더 대시보드 <code>/dashboard</code></td><td>잔고·퍼펫 포지션(청산 버튼)·런치패드 매매·스왑 폼·체결 내역, 5초 폴링 — REST API만으로 동작(코어 무수정). 체결 저널(<code>data/trades.json</code> + <code>GET /api/v1/trades</code>) 포함</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
+  <tr><td><strong>수익 엔진 (플라이휠)</strong></td><td>① 스왑 수수료 0.5% 자동 적립 ② 게이트웨이 크레딧 과금(토큰량 × 요율, 잔액 없으면 402, 데모 탑업) ③ <code>GET /api/v1/revenue</code>: 총수익 − LLM비 = 순수익 + 흑자/적자 판정. 대시보드 "수익 엔진" 카드에 실시간 표시 — Bankr의 "죽지 않는 봇"을 숫자로 구현</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
+  <tr><td>우리만의 git</td><td>git 초기화 + 시크릿 제외(.env.local 커밋 금지) + 초기 커밋 → 비공개 원격 <code>github.com/bigrender/agent-terminal</code> 푸시</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
+  <tr><td>과금 가시성</td><td><code>/api/gateway/usage</code> — 게이트웨이 키별 호출·토큰 사용량 집계 (유료화의 전제)</td><td class="ok">✅ 완료</td></tr>
+  <tr><td>배포 패키징</td><td><code>Dockerfile</code> + <code>.dockerignore</code> — 어느 서버든 <code>docker build</code> 한 줄로 프로덕션 기동</td><td class="ok">✅ 완료</td></tr>
+  <tr><td>HTML 리포트</td><td>이 문서 (<code>public/report.html</code> → <a href="/report.html">localhost:3002/report.html</a>)</td><td class="ok">✅ 완료</td></tr>
+</table>
+
+<h2>2. 전체 구축 현황 (Bankr 부품 기준)</h2>
+
+<table>
+  <tr><th>#</th><th>Bankr 부품</th><th>우리 구현</th><th>상태</th></tr>
+  <tr><td>1</td><td>웹 터미널 + 에이전트 브레인</td><td>자연어 → 툴 호출 (12개 툴)</td><td class="ok">✅ 동작</td></tr>
+  <tr><td>2</td><td>랜딩/마케팅 표면</td><td><code>/</code> 랜딩 (훅·가격·CTA)</td><td class="ok">✅ 오늘 완료</td></tr>
+  <tr><td>3</td><td>소셜 채널 (텔레그램/디스코드)</td><td>롱폴링 봇 2종, 그룹 멘션 필터, 대화 기억</td><td class="ok">✅ 토큰 입력 대기</td></tr>
+  <tr><td>4</td><td>Agent REST API</td><td><code>/api/v1/*</code> — LLM 없이 직접 호출, 키 인증 옵션</td><td class="ok">✅ 실측 검증</td></tr>
+  <tr><td>5</td><td>CLI</td><td>10개 커맨드 (price/swap/perp/launch/…)</td><td class="ok">✅ 실측 검증</td></tr>
+  <tr><td>6</td><td>퍼펫 트레이딩 <span class="tag">독자·Hyperliquid</span></td><td>실시간 mid 시세 + 페이퍼 포지션/PnL + 청산 정산</td><td class="ok">✅ 실데이터 검증</td></tr>
+  <tr><td>7</td><td>토큰 런치패드</td><td>본딩커브(x·y=k) + 1% 수수료 적립 플라이휠</td><td class="ok">✅ 수학 검증</td></tr>
+  <tr><td>8</td><td>LLM 게이트웨이</td><td>OpenAI 호환 프록시 + 사용량 적산 + 조회</td><td class="ok">✅ 인증 검증</td></tr>
+  <tr><td>9</td><td>x402 유료 API <span class="tag">독자</span></td><td>402 페이월(exact/base-sepolia) + verify/settle + 데모 모드</td><td class="ok">✅ 스펙 응답 검증</td></tr>
+  <tr><td>10</td><td>스킬 시스템</td><td><code>skills/*.ts</code> 파일 추가 방식 (gas 예시)</td><td class="ok">✅</td></tr>
+  <tr><td>11</td><td>웹훅</td><td>체결 이벤트 아웃바운드</td><td class="ok">✅ 오늘 완료</td></tr>
+  <tr><td>12</td><td>온체인 지갑</td><td>Base Sepolia 잔액 조회 (공개 RPC)</td><td class="ok">✅ RPC 검증</td></tr>
+  <tr><td>13</td><td>실거래 서명 (스왑/퍼펫 주문)</td><td>— 키·법률 게이트</td><td class="warn">⬜ Phase 2</td></tr>
+  <tr><td>14</td><td>런치패드 온체인화 / X·파캐스터</td><td>—</td><td class="dim">⬜ 백로그</td></tr>
+</table>
+
+<h2>3. 실측 검증 결과</h2>
+
+<div class="card">
+  <ul>
+    <li>Hyperliquid BTC 실시간 mid 조회, ETH 롱 진입(<span class="num">$2,480.85</span>) → mark 평가 → 청산 정산 <span class="ok">잔고 일치</span></li>
+    <li>REST <code>/api/v1/price?symbol=eth</code> → <span class="num">$2,479.28</span>, 스왑 체결 → <code>sol 106.45</code></li>
+    <li>런치패드: 발행(초기가 <span class="num">0.0001</span>) → 매수 시 가격 상승 → 전량 매도 → <span class="num">1% 수수료 적립</span> 확인</li>
+    <li>x402: 데모 모드 실행(실시가 BTC <span class="num">$78,834</span>), 미인증 400/401 처리, 결제 시 verify→settle 경로 구현</li>
+    <li>온체인: Base Sepolia 공개 RPC 잔액 조회 성공</li>
+    <li><code>next build</code> 타입 체크 통과 · 통합 테스트 <code>npm run test:parity</code> 13항목 전부 통과</li>
+    <li><span class="ok">[2026-08-31] LLM 연결 + 최종 E2E 통과:</span> GLM-5.3-Flash가 툴을 직접 호출 — ① "ETH 가격 알려줘" → <span class="num">$2,414.39</span> ② "100 USDC를 ETH로 바꿔줘" → 0.04141 ETH 체결·장부 반영 ③ "그거 다시 팔아줘" → 맥락 이해 후 재판매, USDC 복귀. 웹 채팅 스트리밍(BTC $77,581), 게이트웨이 프록시 + 사용량 적산(26+114 tokens) 확인</li>
+  </ul>
+</div>
+
+<h2>4. 돈이 되는 경로 (3개, 이미 깔린 선)</h2>
+
+<table>
+  <tr><th>경로</th><th>원리</th><th>켜는 조건</th></tr>
+  <tr><td>① x402 유료 API</td><td>에이전트/개발자가 우리 툴 API를 USDC로 호출 (<code>$0.01/호출</code>, 402 자동결제)</td><td class="warn"><code>X402_PAY_TO</code> 주소 + 배포 URL</td></tr>
+  <tr><td>② 런치패드 수수료</td><td>발행된 토큰의 거래 수수료 1%가 플랫폼 수익 → 컴퓨팅비 충당</td><td class="warn">온체인화(컨트랙트) + 법률 검토</td></tr>
+  <tr><td>③ 채널 성장 → 유료 티어</td><td>텔레그램 그룹 확산 → 활성 유저 → 게이트웨이/API 구독</td><td class="warn">TG 토큰 + 데모 영상 (마케팅 플랜 참조)</td></tr>
+</table>
+
+<h2>5. 프로덕트 레벨까지 남은 체크리스트</h2>
+
+<div class="callout">
+<strong>업데이트(2026-08-31): LLM 연결 완료.</strong> Z.ai 코딩플랜 키 + <code>glm-5.3-flash</code>로 최종 대화형 검증까지 통과했습니다 (아래 3번 섹션). 남은 것은 채널 토큰과 배포뿐.
+</div>
+<pre>.env.local 에 추가 가능 (선택):
+TELEGRAM_BOT_TOKEN=...      # @BotFather → /newbot
+DISCORD_BOT_TOKEN=...       # 개발자 포털 → Bot
+# EVM_PRIVATEKEY / X402_PAY_TO / WEBHOOK_URL / AGENT_API_KEY</pre>
+<ul>
+  <li>[x] LLM 키 입력 + 대화형 최종 검증 ← <span class="ok">2026-08-31 완료 (GLM-5.3-Flash)</span></li>
+  <li>[ ] 텔레그램/디스코드 토큰 입력 → <code>npm run bot</code></li>
+  <li>[ ] 배포: <code>docker build -t agent-terminal .</code> → Railway/Fly/VPS (또는 Vercel)</li>
+  <li>[ ] 30초 데모 영상 촬영 (마케팅 플랜 5번 스크립트) → 글로벌 TG 그룹 소프트런치</li>
+  <li>[ ] 시장 테스트 게이트: 2주 내 활성 30명·재사용 30% (미달 시 기능 추가 금지, 훅 교체)</li>
+  <li>[ ] 실거래 전: 디지털자산 규제 전문가 검토 1회 (비커스토디얼 유지 확인)</li>
+</ul>
+
+<h2>6. 실행 커맨드 모음</h2>
+<pre>
+npm run dev -- -p 3002    # 웹 (랜딩 /, 터미널 /terminal)
+npm run bot               # 텔레그램 봇
+npm run bot:discord       # 디스코드 봇
+npm run cli -- portfolio  # CLI
+npm run test:parity       # 통합 테스트
+curl localhost:3002/api/x402?tool=price&symbol=eth   # x402 데모
+</pre>
+
+<p class="meta" style="margin-top:40px">스펙: openspec/changes/ (add-agent-terminal-mvp · add-telegram-connector · add-bankr-feature-parity · add-product-launch-layer) · 마케팅: marketing/PLAN.md</p>
+
+</div>
+</body>
+</html>
