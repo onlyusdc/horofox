@@ -29,7 +29,9 @@ async function main() {
   void dict;
 
   // 데모 모드 (X402_PAY_TO 미설정) 로 띄운다
-  const env = { ...process.env, X402_PAY_TO: "", HL_MODE: "paper" };
+  // 툴 검증에는 쿼터가 방해되므로 넉넉히 준다.
+  // 쿼터 자체는 아래에서 따로, 낮은 한도로 확인한다.
+  const env = { ...process.env, X402_PAY_TO: "", HL_MODE: "paper", FREE_CALLS_PER_DAY: "500" };
   const srv = spawn("npx", ["next", "dev", "-p", String(PORT)], { env, stdio: "ignore", detached: true });
   const cleanup = () => { try { process.kill(-srv.pid!, "SIGKILL"); } catch { /* 종료됨 */ } };
   process.on("exit", cleanup);
@@ -68,6 +70,31 @@ async function main() {
     t("데모 모드에서는 402 없이 실행", price1.ok === true);
     t("페이월 코드가 존재", src.includes("x402Version") && src.includes("402"));
     t("스킴·네트워크 명시", src.includes('scheme: "exact"') && src.includes("base-sepolia"));
+
+    console.log("\n쿼터 — 무료 한도를 넘으면 402 로 결제를 요구하는가");
+    // 낮은 한도로 별도 인스턴스를 띄워 소진까지 확인한다
+    const P2 = PORT + 1;
+    const srv2 = spawn("npx", ["next", "dev", "-p", String(P2)],
+      { env: { ...process.env, X402_PAY_TO: "", HL_MODE: "paper", FREE_CALLS_PER_DAY: "2", HL_QUOTA_SUFFIX: String(Date.now()) },
+        stdio: "ignore", detached: true });
+    try {
+      const b2 = `http://127.0.0.1:${P2}/api/x402?tool=price&symbol=BTC`;
+      if (await waitReady(b2)) {
+        // 이미 소진돼 있을 수 있으므로 상태를 먼저 읽는다
+        const q0 = await (await fetch(`http://127.0.0.1:${P2}/api/v1/quota`)).json() as { remaining?: number; freeLimit?: number };
+        t("/api/v1/quota 가 상태를 알려줌", typeof q0.remaining === "number", `remaining=${q0.remaining} limit=${q0.freeLimit}`);
+        // 남은 만큼 + 여유분을 소모시킨다
+        let last = 200;
+        for (let i = 0; i < (q0.remaining ?? 0) + 3; i++) last = (await fetch(b2)).status;
+        t("한도 초과 시 402", last === 402, `마지막 HTTP ${last}`);
+        const body = await (await fetch(b2)).json() as { error?: string; hint?: string };
+        t("402 응답이 이유와 해결책을 담음", /quota/i.test(body.error ?? "") && /x402/i.test(body.hint ?? ""));
+      } else {
+        t("쿼터 검증 서버 기동", false);
+      }
+    } finally {
+      try { process.kill(-srv2.pid!, "SIGKILL"); } catch { /* 종료됨 */ }
+    }
 
     console.log(fail === 0 ? "\nX402 OK — 유료 API 동작" : `\nX402 FAIL — ${fail}건`);
   } finally { cleanup(); }

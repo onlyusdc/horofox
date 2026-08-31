@@ -79,13 +79,13 @@ Scope: Bankr 의 네 부품을 **그대로 하되 더 심플·빠르게**, 그�
   EXPECT: /DEPLOY OK/
   EVIDENCE: ✓ 응답에 개인키가 없음 | DEPLOY OK — 공개 URL 동작
 
-- [ ] G11: 플레이스홀더 0건 + 커밋 완료.
+- [x] G11: 플레이스홀더 0건 + 커밋 완료.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'P=$(grep -rnE "TODO|FIXME|not implemented" lib/ scripts/ app/ 2>/dev/null | wc -l | tr -d " "); D=$(git status --porcelain | grep -c . | tr -d " "); echo "placeholders=$P dirty=$D"; [ "$P" = 0 ] && [ "$D" = 0 ] && echo CLEAN || echo DIRTY'
   EXPECT: /CLEAN/
-  EVIDENCE: pending
+  EVIDENCE: placeholders=0 dirty=0 | CLEAN
 
-- [ ] G12: README 가 4부품·다국어·설정 필요값을 정직하게 담는다.
-  EVIDENCE: pending
+- [x] G12: README 가 4부품·다국어·설정 필요값을 정직하게 담는다.
+  EVIDENCE: 실물 대조 완료. (1) 문서화한 엔드포인트 3개 전부 존재 — /api/v1/quota, /api/x402, /api/v1/mode. (2) env 3종이 코드에 실재 — FREE_CALLS_PER_DAY·CALLS_PER_PAYMENT→lib/quota.ts, X402_PAY_TO→x402+quota 라우트. (3) x402 툴 4종(price/markets/funding/portfolio) 구현 확인. (4) 문서 표시가 $0.001 이 코드 `PRICE_USDC = 0.001` 과 일치 (불일치 시 test-x402 가 실패). (5) 배포본 실호출: funding SKHX 96.8% "longs pay shorts", quota 무료 20회·잔여 20·degraded=false. (6) 봇 토큰 발급처(@BotFather / discord.com/developers, Message Content Intent 주의)와 CoinGecko 403·429 교체 사유를 명시.
 
 <!--
 - 체크박스는 gate-check.mjs 가 CHECK 실행 후 EXPECT 매칭되면 뒤집는다.
