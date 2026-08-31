@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "agent-terminal",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-01",
+  // node:crypto, node:fs 등을 쓰는 코드가 있어 필요하다.
+  // 단, Workers 의 fs 는 읽기 전용이라 data/*.json 쓰기는 실패한다 —
+  // lib/storage.ts 가 그걸 ReadOnlyStorageError 로 잡아 사용자에게 보여준다.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true }
+}

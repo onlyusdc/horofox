@@ -3,6 +3,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { writeJson } from "./storage";
 
 const LEDGER_PATH = path.join(process.cwd(), "data", "ledger.json");
 
@@ -22,8 +23,7 @@ async function readLedger(): Promise<Ledger> {
 }
 
 async function writeLedger(ledger: Ledger): Promise<void> {
-  await fs.mkdir(path.dirname(LEDGER_PATH), { recursive: true });
-  await fs.writeFile(LEDGER_PATH, JSON.stringify(ledger, null, 2) + "\n", "utf8");
+  await writeJson(LEDGER_PATH, ledger);
 }
 
 const norm = (s: string) => s.trim().toLowerCase();

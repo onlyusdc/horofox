@@ -3,6 +3,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { writeJson } from "./storage";
 
 const DATA = path.join(process.cwd(), "data");
 const REVENUE_PATH = path.join(DATA, "revenue.json");
@@ -33,7 +34,7 @@ export async function recordRevenue(category: "swap" | "gateway", usdc: number, 
   file.history.push({ category, usdc, ts: new Date().toISOString(), note });
   file.history = file.history.slice(-100);
   await fs.mkdir(DATA, { recursive: true });
-  await fs.writeFile(REVENUE_PATH, JSON.stringify(file, null, 2) + "\n", "utf8");
+  await writeJson(REVENUE_PATH, file);
 }
 
 const per1k = (env: string | undefined, fallback: number) => {
@@ -67,11 +68,36 @@ export async function revenueSummary() {
   }
   const llmCostUsdc = (promptTokens / 1000) * pricePrompt + (completionTokens / 1000) * priceCompletion;
 
-  const totalRevenueUsdc = file.swapFeesUsdc + launchpadFeesUsdc + file.gatewayRevenueUsdc;
+  // builder 수수료 — 유일한 **온체인 실제 수익**이다. 위 항목들은 전부 페이퍼 집계다.
+  // 조회가 실패해도 요약 전체가 죽지 않게 감싼다 (네트워크는 언제든 끊긴다).
+  let builderFeesUsdc = 0;
+  let builderConfigured = false;
+  let builderError: string | null = null;
+  try {
+    const b = await (await import("./hl/revenue")).builderRevenue();
+    builderFeesUsdc = b.cumulativeUsd;
+    builderConfigured = b.configured;
+  } catch (e) {
+    builderError = e instanceof Error ? e.message : String(e);
+  }
+
+  // 페이퍼 수익과 실수익을 **합산하지 않는다.** 섞으면 매출을 착각한다.
+  const paperRevenueUsdc = file.swapFeesUsdc + launchpadFeesUsdc + file.gatewayRevenueUsdc;
+  const totalRevenueUsdc = paperRevenueUsdc;
   return {
     swapFeesUsdc: file.swapFeesUsdc,
     launchpadFeesUsdc,
     gatewayRevenueUsdc: file.gatewayRevenueUsdc,
+    paperRevenueUsdc,
+    /** 온체인 실수익. 위 페이퍼 항목과 별도로 본다. */
+    real: {
+      builderFeesUsdc,
+      configured: builderConfigured,
+      error: builderError,
+      note: builderConfigured
+        ? "Hyperliquid 온체인 집계 (실제 수익)"
+        : "HL_BUILDER_ADDRESS 미설정 — 수수료 받을 주소가 없습니다",
+    },
     totalRevenueUsdc,
     llmUsage: { promptTokens, completionTokens },
     llmCostUsdc,

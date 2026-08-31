@@ -1,6 +1,103 @@
-# Agent Terminal → 제2의 Bankr 프로젝트
+# Agent Terminal — 채팅으로 엔비디아를 온체인에서 산다
 
-Bankr(bankr.bot)를 통째로 클론해 구조를 이해하고, 그 위에 **Hyperliquid + x402**를 독자 레이어로 얹는 프로젝트.
+Hyperliquid HIP-3 시장에는 토큰화된 주식·지수·원자재가 올라와 있다.
+이 에이전트는 그 **280종에 도달**하고(코어 177 + HIP-3 103), **진짜 주문에 서명**한다.
+
+채팅·텔레그램·디스코드·CLI·REST 어디서든 거래하고,
+모든 주문에 builder code 가 붙어 **거래액의 0.1%** 가 수수료로 쌓인다.
+
+## ⚠️ 수익을 약속하지 않는다
+
+펀딩이 높은 시장을 잡는 캐리 전략을 70일치로 직접 백테스트했더니 **마이너스**였다.
+
+| | 결과 |
+|---|---|
+| 무헤지 (47시장·140거래) | 펀딩−수수료 +0.20%/주, 가격변동 −5.85%(σ28.8%) → **−5.65%**, 승률 45% |
+| 델타 중립 (16페어·930관측) | 펀딩 스프레드 +0.04%/주 < 수수료, 가격잔차 σ9.73% → **−0.60%**, 승률 32% |
+
+HIP-3 는 배포자마다 오라클이 달라 **같은 자산이라도 두 시장의 가격이 함께 움직이지 않는다.**
+그래서 이건 **거래 도구지 전략이 아니다.** 무엇을 살지는 사용자가 정한다.
+
+Bankr(bankr.bot) 구조를 참고해 껍데기를 만들고, 거래 엔진은 Hyperliquid 네이티브로 독자 구현했다.
+
+## 🌐 라이브 데모
+
+**https://agent-terminal.xpost.workers.dev**
+
+Cloudflare Workers 에 배포돼 있고, **읽기 전용**이다:
+
+| 되는 것 | 안 되는 것 |
+|---|---|
+| 시세 조회 (코어 + HIP-3 280종) | 거래 — 배포본은 PAPER 모드 고정 |
+| `/api/v1/mode`, `/api/v1/revenue` | 페이퍼 원장 저장 (Workers 는 파일시스템이 읽기 전용) |
+| 랜딩·대시보드·터미널 UI | 유저 지갑 생성 |
+
+쓰기가 필요한 동작은 `ReadOnlyStorageError` 로 **명시적으로 실패**한다 — 저장된 척하지 않는다.
+실제 운용은 아래 셀프호스트로 해야 한다.
+
+```bash
+# 배포 (Cloudflare, wrangler 인증 필요)
+npx opennextjs-cloudflare build && npx wrangler deploy
+
+# 셀프호스트 (거래하려면 이쪽)
+docker build -t agent-terminal . && docker run -p 3000:3000 --env-file .env.local agent-terminal
+```
+
+## 🔐 인증
+
+API 는 `lib/auth.ts` 가 신원을 판정한다. **클라이언트가 보낸 `X-User-Id` 같은 헤더는 읽지 않는다** —
+그렇게 하면 헤더 하나로 남의 계정이 될 수 있다. 신원은 서버가 아는 비밀에서만 나온다.
+
+```bash
+AGENT_API_KEY=운영자키                       # 없으면 로컬 개발로 간주해 개방
+USER_API_KEYS=alice:키1,bob:키2              # 키 → userId 매핑은 서버가 갖는다
+```
+
+- 유저 키로 호출하면 그 유저 컨텍스트로 거래된다 (`{ userId }`)
+- 운영자 키는 기존 동작(운영자 지갑)
+- 토큰이 없거나 틀리면 401
+
+**운영 배포 시 `AGENT_API_KEY` 를 반드시 설정할 것.** 미설정이면 API 가 인증 없이 열린다.
+
+## 🔑 두 가지 모드
+
+| | PAPER (기본) | LIVE |
+|---|---|---|
+| 주문 | 나가지 않음. 로컬 원장에 기록 | **실제 Hyperliquid 주문** |
+| 시세 | 실시간 (HL info API) | 실시간 |
+| 수수료 | 없음 (가상) | **거래액의 0.1% 가 내 지갑으로** |
+| 필요한 것 | 없음 | `HL_MODE=live` + `HL_TRADER_KEY` + `HL_BUILDER_ADDRESS` |
+
+**기본은 항상 PAPER.** 셋 중 하나라도 없으면 자동으로 PAPER 로 떨어진다 —
+키가 있다는 이유만으로 실주문이 나가지 않게 구조로 막았다. 현재 모드는 `perpMode()` 로 확인한다.
+
+### ⚠️ LIVE 전에 반드시: 빌더 계정에 100 USDC
+
+Hyperliquid 는 **빌더에게 퍼프 계정 가치 100 USDC 이상**을 요구한다.
+미달이면 builder code 가 붙은 주문이 **전부 거부된다** — 유저가 아예 거래를 못 한다.
+
+### 🔴 수수료 단위 함정
+
+같은 수수료가 두 곳에서 **단위가 다르다.** 섞으면 100배 틀린다.
+
+| 위치 | 필드 | 단위 | 0.1% 의 값 |
+|---|---|---|---|
+| 주문 첨부 | `action.builder.f` | tenths-of-bps (정수) | **`100`** |
+| 유저 승인 | `approveBuilderFee.maxFeeRate` | 퍼센트 문자열 | **`"0.1%"`** |
+
+그래서 변환은 `lib/hl/units.ts` 밖에서 하지 않는다.
+
+## 📈 거래 가능 자산
+
+메인 perp dex(BTC·ETH·SOL·HYPE 등 177종)에 더해 **HIP-3 dex(`xyz`) 103종**까지 도달한다:
+
+- **SKHX** SK하이닉스 · **SKHY** SK하이닉스 ADR · **SMSN** 삼성전자
+- **DRAM** D램 가격 지수 (개별주 프록시가 아니라 메모리 사이클 그 자체)
+- **MU** 마이크론 · **SNDK** 샌디스크 · **EWY** 한국 MSCI ETF
+- SP500 · XYZ100(나스닥100) · GOLD · SILVER · BRENTOIL · NVDA · TSLA …
+
+HIP-3 자산은 주문 ID 체계가 다르다: `assetId = 100000 + perpDexIndex × 10000 + indexInMeta`.
+이걸 틀리면 **다른 종목에 주문이 나가므로** `scripts/test-hl-engine.ts` 가 공식을 못박아 검증한다.
 
 ## Bankr 부품별 클론 현황
 
@@ -12,13 +109,13 @@ Bankr(bankr.bot)를 통째로 클론해 구조를 이해하고, 그 위에 **Hyp
 | 2c | 트레이더 대시보드 (비채팅 UI) | `/dashboard` — REST API만으로 동작, 체결 저널 | ✅ 동작 |
 | 3 | Agent REST API | `/api/v1/*` (가격·스왑·퍼펫·런치·잔액) | ✅ 동작 검증 |
 | 4 | CLI | `npm run cli` (10개 커맨드) | ✅ 동작 검증 |
-| 5 | 퍼펫 트레이딩 ← 독자(Hyperliquid) | `lib/perps.ts` 실시세 + 페이퍼 포지션/PnL | ✅ 실데이터 검증 |
+| 5 | 퍼펫 트레이딩 ← 독자(Hyperliquid) | `lib/perps.ts` + `lib/hl/*` — PAPER/LIVE 양쪽, HIP-3 포함 | ✅ 서명까지 검증 |
 | 6 | 토큰 런치패드 | `lib/launchpad.ts` 본딩커브 + 1% 수수료 적립 | ✅ 수학 검증 |
 | 7 | LLM 게이트웨이 | `/api/gateway/v1/chat/completions` + 사용량 적산 | ✅ 인증 검증 |
 | 8 | x402 유료 API ← 독자 | `/api/x402` 402 페이월 + 데모 모드 | ✅ 스펙 준수 응답 |
 | 9 | 스킬 시스템 | `skills/*.ts` + 레지스트리 병합 (gas 예시) | ✅ |
 | 10 | 온체인 지갑 | Base Sepolia 잔액 조회 (`EVM_PRIVATEKEY` 시 내 지갑 모드) | ✅ RPC 검증 |
-| 11 | 실제 스왑/주문 서명 | Base 테스트넷 + HL SDK | ⬜ Phase 2 (키 필요) |
+| 11 | 실제 주문 서명 + builder fee | `lib/hl/trade.ts` — 서명·전송 경로 완성 | ✅ 서명 검증 / ⬜ 전송은 자금 필요 |
 | 12 | 런치패드 온체인화 / 수수료→컴퓨팅비 전환 | 컨트랙트 | ⬜ 법률 검토 후 |
 | 13 | X·파캐스터 채널, 웹훅, 스킬 마켓 UI | — | ⬜ 백로그 |
 
@@ -37,6 +134,19 @@ npm run test:tools           # 기존 툴 테스트
 npm run test:parity          # 패리티 통합 테스트 (HL 실시세 포함)
 ```
 
+### Hyperliquid 엔진 검증
+
+```bash
+npx tsx scripts/test-hl-engine.ts   # 단위변환·라운딩·HIP-3 ID (네트워크 불필요)
+npx tsx scripts/test-hl-live.ts     # HIP-3 실도달 (SKHX·SMSN·DRAM …)
+npx tsx scripts/test-builder.ts     # builder code 가 모든 주문에 붙는가
+npx tsx scripts/test-mode.ts        # PAPER/LIVE 분리 — 실수 방지
+npx tsx scripts/test-sign.ts        # 실제 EIP-712 서명 생성·검증
+npx tsx scripts/test-safety.ts      # 레버리지·최소액·출금경로 부재
+npx tsx scripts/test-revenue.ts     # 온체인 builder 수수료 조회
+npx tsx scripts/test-rest.ts        # 서버 띄워 REST 실호출
+```
+
 ## 검증된 것 (2026-08-30)
 
 - Hyperliquid BTC/ETH 실시간 mid 조회 → 페이퍼 롱 진입(mark 평가)→ 청산 정산 일치
@@ -44,7 +154,94 @@ npm run test:parity          # 패리티 통합 테스트 (HL 실시세 포함)
 - REST: `/api/v1/price` 2479.28, `/api/v1/swap` 체결, x402 데모/에러처리, gateway 401
 - 온체인: Base Sepolia 주소 잔액 조회, `next build` 타입 통과
 
+### 멀티유저용 환경변수
+
+```bash
+USER_ENCRYPTION_KEY=$(openssl rand -hex 32)   # 유저 agent 키 암호화 (없으면 저장 거부)
+HL_TESTNET_KEY=                                # 테스트넷 트레이더 키 (테스트 전용)
+```
+
+## 아직 안 된 것 (정직하게)
+
+- **체결(fill) 은 아직 없다.** 테스트넷에서 주문을 실제로 전송했고 거래소가 우리 서명을 검증해
+  서명자를 복원하는 것까지 확인했지만(`testnet-trade.ts --probe`), 계정에 테스트넷 USDC 가 없어
+  체결까지는 가지 못했다. faucet 이 지갑 연결 UI 를 요구해 자동화할 수 없다 — **사람이 한 번 눌러야 한다.**
+- **멀티유저 인증은 없다.** 유저별 지갑·암호화 저장·컨텍스트 분리는 됐지만,
+  `userId` 를 누가 넘기는지 검증하는 건 호출자 몫이다. 외부 공개 전 반드시 인증을 붙일 것.
+- **LIVE 청산 시 마진 환원이 원장에 반영되지 않는다.** 실계좌에서는 HL 계정이
+  source of truth 라 로컬 원장을 쓰지 않는다 (`returnedUsdc: 0`). 페이퍼 모드는 그대로 정산한다.
+- **런치패드·스왑은 여전히 페이퍼다.** 이번 머지는 퍼펫 거래 경로만 실거래로 바꿨다.
+- **수익 항목을 합산하지 않는다.** `revenueSummary()` 의 `totalRevenueUsdc` 는 페이퍼 집계이고,
+  실매출은 `real.builderFeesUsdc` 에 따로 있다. 섞으면 매출을 착각한다.
+
+
+## 🧪 테스트넷에서 첫 실주문
+
+메인넷에 돈을 걸기 전에 여기서 왕복을 닫는다.
+
+```bash
+npx tsx scripts/testnet-trade.ts          # 진단만 — 무엇이 없는지 알려준다
+npx tsx scripts/testnet-trade.ts --probe  # 자금 없이 전송해 서명이 통과하는지 확인
+npx tsx scripts/testnet-trade.ts --send   # 자금이 있으면 실제 주문
+```
+
+**`--probe` 가 하는 일**: 자금이 없어도 실제로 주문을 보낸다. 거래소가
+`User or API Wallet 0x… does not exist` 로 거부하면서 **우리 서명에서 서명자 주소를 복원**하는데,
+그 주소가 우리 계정과 일치하면 서명·전송 경로가 정상이라는 증거다.
+즉 **남은 건 코드가 아니라 자금**임을 가른다.
+
+자금 채우는 법:
+1. `HL_TESTNET_KEY` 를 `.env.local` 에 저장 (스크립트가 없으면 생성해 알려준다 — 테스트넷 전용 키)
+2. https://app.hyperliquid-testnet.xyz/drip 에서 지갑 연결 후 테스트넷 USDC 수령
+3. **빌더 주소의 퍼프 계정에도 $100 이상** 입금 (없으면 모든 주문이 거부된다)
+4. `--send` 로 재실행
+
+## 👥 멀티유저
+
+유저마다 별도의 Hyperliquid **agent 지갑**을 만들어 각자의 주문을 각자의 키로 서명한다.
+수수료는 전부 하나의 builder 주소(운영자)로 모인다.
+
+```ts
+import { ensureAgentWallet, upsertUser } from "@/lib/users";
+import { openPerp } from "@/lib/perps";
+
+const u = await ensureAgentWallet("telegram:12345");   // agent 지갑 생성 (키는 암호화 저장)
+// → 유저에게 u.agentAddress 를 HL 앱에서 승인하게 안내
+await upsertUser("telegram:12345", { mainAddress: "0x…", agentApproved: true });
+
+await openPerp("SKHX", "long", 100, 5, { userId: "telegram:12345" });  // 그 유저로 주문
+await openPerp("BTC", "long", 100, 5);                                  // ctx 생략 = 운영자
+```
+
+- **agent 지갑은 주문만 가능하고 출금 권한이 구조적으로 없다.** 서버가 털려도 자금은 못 나간다.
+- 개인키는 `USER_ENCRYPTION_KEY` 로 **AES-256-GCM 암호화**해서만 저장한다.
+  키가 없으면 저장 자체를 거부한다 (평문 경로 없음).
+- 포지션 조회는 유저의 **메인 지갑** 기준이다. agent 는 서명만 한다.
+- 승인 전 유저는 거래가 거부된다.
+
+**한계**: 인증은 호출자 책임이다. `userId` 를 넘기면 그 유저로 거래되므로,
+REST 를 외부에 열 때는 `AGENT_API_KEY` 와 함께 **유저 식별을 반드시 서버가 검증**해야 한다.
+
+## 📊 대시보드
+
+`/dashboard` 상단에 거래 모드 배지가 뜬다.
+
+- **● LIVE** — 실주문이 나가는 상태. 네트워크(mainnet/testnet)와 builder·trader 주소를 함께 표시
+- **○ PAPER** — 실주문 없음. **왜** 페이퍼인지 이유까지 보여준다 (키 없음/모드 미지정 등)
+- 그 아래 **온체인 builder 수수료**(실수익)를 페이퍼 집계와 **분리해서** 표시한다.
+  페이퍼 항목은 "페이퍼 합계"로 이름을 바꿔 실매출과 혼동하지 않게 했다.
+
+```bash
+curl localhost:3002/api/v1/mode      # 모드·이유·주소 (개인키는 절대 안 나온다)
+curl localhost:3002/api/v1/revenue   # real.builderFeesUsdc = 실수익
+```
+
 ## 규제 메모 (법률 자문 대체 아님)
 
 - 커스터디얼(플랫폼 보관) 구조는 관할별 라이선스 영역 → **비커스토디얼 퍼스트**
 - 퍼펫·토큰 발행은 테스트넷/페이퍼로 먼저, 실서비스 전 해당 관할 규제 전문가 검토
+- **거래 수수료를 받으면서 특정 관할의 개인투자자를 유치하면** 그 나라의 무인가
+  금융투자업에 해당할 수 있다. 대상 이용자를 정하기 전에 금융규제 전문가와 확인할 것.
+- **HIP-3 자산은 오라클 리스크가 실재한다.** 2026-07-28 한국 NXT 의 이상 체결 1건이
+  SKHX 퍼프를 약 19% 급락시켜 960여 계좌 $5,740만이 청산됐다. 배포자가 오라클 입력을
+  통제하며, HIP-3 슬래싱은 배포자 스테이크를 소각할 뿐 피해자에게 보상하지 않는다.

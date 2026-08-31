@@ -24,9 +24,22 @@ interface Revenue {
   launchpadFeesUsdc: number;
   gatewayRevenueUsdc: number;
   totalRevenueUsdc: number;
+  paperRevenueUsdc: number;
+  /** 온체인 실수익. 위 페이퍼 항목과 별개다. */
+  real: { builderFeesUsdc: number; configured: boolean; error: string | null; note: string };
   llmCostUsdc: number;
   netUsdc: number;
   selfSustaining: boolean;
+}
+
+interface Mode {
+  ok: boolean;
+  mode: "paper" | "live";
+  reason: string;
+  trader: string | null;
+  builder: string | null;
+  feePercent: number;
+  network: "mainnet" | "testnet";
 }
 
 const num = (n: number | null | undefined, d = 2) =>
@@ -47,18 +60,20 @@ export default function Dashboard() {
   const [pad, setPad] = useState<Launchpad | null>(null);
   const [trades, setTrades] = useState<Trades[] | null>(null);
   const [rev, setRev] = useState<Revenue | null>(null);
+  const [mode, setMode] = useState<Mode | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const refresh = useCallback(async () => {
-    const [p, po, pa, t, r] = await Promise.all([
+    const [p, po, pa, t, r, m] = await Promise.all([
       api<Portfolio>("/portfolio"),
       api<Positions>("/perps"),
       api<Launchpad>("/launchpad"),
       api<Trades[]>("/trades"),
       api<Revenue>("/revenue"),
+      api<Mode>("/mode"),
     ]);
-    setPf(p); setPos(po); setPad(pa); setTrades(t); setRev(r);
+    setPf(p); setPos(po); setPad(pa); setTrades(t); setRev(r); setMode(m);
   }, []);
 
   useEffect(() => {
@@ -198,12 +213,41 @@ export default function Dashboard() {
         </div>
 
         <div className="dash-card">
-          <h2>수익 엔진 (플라이휠) — 수수료가 LLM비를 내는가</h2>
+          <h2>수익 — 실수익과 페이퍼는 따로 본다</h2>
+
+          <div className={mode?.mode === "live" ? "mode-bar live" : "mode-bar paper"}>
+            <span className="mode-badge">{mode ? (mode.mode === "live" ? "● LIVE" : "○ PAPER") : "…"}</span>
+            <span className="mode-why">
+              {mode?.mode === "live"
+                ? `${mode.network} · 실주문이 나갑니다`
+                : `실주문 없음 — ${mode?.reason ?? "확인 중"}`}
+            </span>
+            {mode?.builder && (
+              <span className="mode-meta">builder {mode.builder.slice(0, 6)}…{mode.builder.slice(-4)} · {mode.feePercent}%</span>
+            )}
+            {mode?.trader && (
+              <span className="mode-meta">trader {mode.trader.slice(0, 6)}…{mode.trader.slice(-4)}</span>
+            )}
+          </div>
+
+          <div className="real-rev">
+            <span className="dim-text">온체인 builder 수수료 (실수익)</span>
+            <div className={rev?.real?.configured ? "real-num ok" : "real-num"}>
+              ${num(rev?.real?.builderFeesUsdc, 4)}
+            </div>
+            <span className="dim-text">
+              {rev?.real?.error
+                ? `조회 실패: ${rev.real.error}`
+                : rev?.real?.note ?? "…"}
+            </span>
+          </div>
+
+          <p className="dim-text" style={{ marginTop: 14 }}>아래는 <b>페이퍼</b> 집계 — 실제 돈이 아닙니다</p>
           <div className="rev-grid">
             <div><span className="dim-text">스왑 수수료</span><div className="rev-num">${num(rev?.swapFeesUsdc, 4)}</div></div>
             <div><span className="dim-text">런치패드 수수료</span><div className="rev-num">${num(rev?.launchpadFeesUsdc, 4)}</div></div>
             <div><span className="dim-text">게이트웨이 과금</span><div className="rev-num">${num(rev?.gatewayRevenueUsdc, 4)}</div></div>
-            <div><span className="dim-text">총 수익</span><div className="rev-num ok">${num(rev?.totalRevenueUsdc, 4)}</div></div>
+            <div><span className="dim-text">페이퍼 합계</span><div className="rev-num">${num(rev?.paperRevenueUsdc, 4)}</div></div>
             <div><span className="dim-text">LLM 비용</span><div className="rev-num err">-${num(rev?.llmCostUsdc, 4)}</div></div>
             <div><span className="dim-text">순수익</span>
               <div className={rev?.selfSustaining ? "rev-num ok" : "rev-num err"}>
@@ -211,7 +255,10 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          <p className="dim-text">"죽지 않는 봇"의 숫자 — 수익 ≥ LLM비면 에이전트가 스스로 산다</p>
+          <p className="dim-text">
+            페이퍼 수익은 LLM비 충당 시뮬레이션이고, <b>실제 매출은 위의 builder 수수료</b>뿐입니다.
+            거래가 없으면 0.1% × 0 = $0.
+          </p>
         </div>
 
         <div className="dash-card">

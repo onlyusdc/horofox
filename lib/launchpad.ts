@@ -3,6 +3,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { writeJson } from "./storage";
 import { adjustBalance, getBalances } from "./ledger";
 
 const TOKENS_PATH = path.join(process.cwd(), "data", "tokens.json");
@@ -30,8 +31,7 @@ async function readTokens(): Promise<TokensFile> {
 }
 
 async function writeTokens(file: TokensFile): Promise<void> {
-  await fs.mkdir(path.dirname(TOKENS_PATH), { recursive: true });
-  await fs.writeFile(TOKENS_PATH, JSON.stringify(file, null, 2) + "\n", "utf8");
+  await writeJson(TOKENS_PATH, file);
 }
 
 export const priceOf = (t: LaunchToken) => t.reserveUsdc / t.reserveToken;

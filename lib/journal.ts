@@ -1,6 +1,7 @@
 // 체결 저널 — 모든 체결을 data/trades.json에 기록 (대시보드·감사용)
 import fs from "node:fs/promises";
 import path from "node:path";
+import { writeJson } from "./storage";
 
 const TRADES_PATH = path.join(process.cwd(), "data", "trades.json");
 const MAX_RECORDS = 200;
@@ -19,8 +20,7 @@ export async function recordTrade(event: string, data: unknown): Promise<void> {
     records = [];
   }
   records.push({ event, data, ts: new Date().toISOString() });
-  await fs.mkdir(path.dirname(TRADES_PATH), { recursive: true });
-  await fs.writeFile(TRADES_PATH, JSON.stringify(records.slice(-MAX_RECORDS), null, 2) + "\n", "utf8");
+  await writeJson(TRADES_PATH, records.slice(-MAX_RECORDS));
 }
 
 export async function getTrades(limit = 50): Promise<TradeRecord[]> {

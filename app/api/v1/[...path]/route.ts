@@ -7,6 +7,7 @@ import { portfolio, swap } from "@/lib/ledger";
 import { closePerp, getPerpMid, getPerpPositions, openPerp } from "@/lib/perps";
 import { buyToken, getLaunchpad, launchToken, sellToken } from "@/lib/launchpad";
 import { onchainBalance } from "@/lib/wallet";
+import { identify, tradeContextOf } from "@/lib/auth";
 
 interface Body {
   from?: string;
@@ -25,10 +26,10 @@ interface Body {
 
 export const runtime = "nodejs";
 
+// 신원은 lib/auth 가 판정한다. 클라이언트가 보낸 userId 헤더는 읽지 않는다 —
+// 그렇게 하면 헤더 하나로 남의 계정이 될 수 있다.
 function authorized(req: Request): boolean {
-  const key = process.env.AGENT_API_KEY;
-  if (!key) return true; // 로컬 개발 기본: 개방
-  return req.headers.get("authorization") === `Bearer ${key}`;
+  return identify(req) !== null;
 }
 
 function unauthorized() {
@@ -55,7 +56,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
     case "portfolio":
       return run(() => portfolio());
     case "perps":
-      return run(() => getPerpPositions());
+      return run(() => getPerpPositions(tradeContextOf(identify(req))));
     case "perp-price":
       return run(async () => ({ ok: true, coin: q("coin")?.toUpperCase(), mid: await getPerpMid(q("coin") ?? "" ) }));
     case "launchpad":
@@ -80,9 +81,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ path: string[]
     case "swap":
       return run(() => swap(body.from ?? "", body.to ?? "", Number(body.amount)));
     case "perp":
-      return run(() => openPerp(body.coin ?? "", body.direction ?? "long", Number(body.marginUsdc), Number(body.leverage ?? 1)));
+      return run(() => openPerp(body.coin ?? "", body.direction ?? "long", Number(body.marginUsdc), Number(body.leverage ?? 1), tradeContextOf(identify(req))));
     case "close":
-      return run(() => closePerp(body.coin ?? ""));
+      return run(() => closePerp(body.coin ?? "", tradeContextOf(identify(req))));
     case "launch":
       return run(() => launchToken(body.name ?? "", body.symbol ?? ""));
     case "buy":

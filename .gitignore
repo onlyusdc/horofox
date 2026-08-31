@@ -17,3 +17,8 @@ data/
 
 # 사업 전략 문서 — 비공개 유지
 marketing/
+*.tsbuildinfo
+
+# Cloudflare 배포 산출물
+.open-next/
+.wrangler/
