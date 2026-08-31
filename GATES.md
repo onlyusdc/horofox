@@ -64,10 +64,10 @@ Scope: Bankr 의 네 부품을 **그대로 하되 더 심플·빠르게**, 그�
   EXPECT: /LANDING OK/
   EVIDENCE: ✓ 기능 카드가 데이터로 분리됨 | LANDING OK — 증거 먼저, 면책은 유지
 
-- [ ] G8: 회귀 없음 — 기존 검증 22종 전부 통과.
+- [x] G8: 회귀 없음 — 기존 검증 22종 전부 통과.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'F=0; for f in scripts/test-*.ts; do case "$f" in *deployed*|*posture*|*nosecrets*) continue;; esac; npx tsx "$f" >/dev/null 2>&1 || { echo "FAIL $f"; F=1; }; done; [ $F = 0 ] && echo NO-REGRESSION || echo REGRESSED'
   EXPECT: /NO-REGRESSION/
-  EVIDENCE: pending
+  EVIDENCE: NO-REGRESSION
 
 - [x] G9: 빌드·타입 클린.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'T=$(npx tsc --noEmit 2>&1 | wc -l | tr -d " "); B=$(npm run build 2>&1 | grep -c "Compiled successfully"); echo "tsc=$T build=$B"; [ "$T" = 0 ] && [ "$B" -ge 1 ] && echo BUILD-OK || echo BUILD-BROKEN'
