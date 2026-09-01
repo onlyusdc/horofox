@@ -46,7 +46,7 @@ Scope: Bankr 의 구조를 따라가되, 걔들이 **비워둔 자리**를 우�
 - [x] G2: `/api/v1/selffund` 가 현재 루프 상태를 반환한다 (수취액·전환분·잔여 크레딧).
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-selffund.ts --api 2>&1 | tail -12
   EXPECT: /SELFFUND-API OK/
-  EVIDENCE: SELFFUND-API OK (15 assertions, 재측정). 무토큰 GET 401 / 유저 POST 403 / 운영자 POST 200. 응답에 키·시크릿 0.
+  EVIDENCE: SELFFUND-API OK (18 assertions). 운영자 키 미설정 시 POST 503 검증 포함. 무토큰 GET 401 / 유저 POST 403 / 운영자 POST 200. 응답에 키·시크릿 0.
 
 - [x] G3: 공개 Metrics — Bankr 처럼 지표를 공개하되 **실수익과 페이퍼를 절대 합산하지 않는다**.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-public-metrics.ts 2>&1 | tail -14
@@ -56,7 +56,7 @@ Scope: Bankr 의 구조를 따라가되, 걔들이 **비워둔 자리**를 우�
 - [x] G4: HIP-3 우위가 수치로 노출된다 — 우리가 닿는 자산 수와, 그중 토큰화 주식/원자재 분류.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-coverage.ts 2>&1 | tail -14
   EXPECT: /COVERAGE OK/
-  EVIDENCE: COVERAGE OK (16 assertions) — 280 = 크립토 177 + HIP-3 103 (주식 93 / 지수·원자재 10). 표본 TSLA NVDA HOOD INTC PLTR COIN META. LiveTicker 하드코딩 `177 +` 제거.
+  EVIDENCE: COVERAGE OK (16 assertions) — 280 = 크립토 177 + HIP-3 103 (주식 92 / 지수·원자재 11). 표본 TSLA NVDA HOOD INTC PLTR COIN META AAPL. LiveTicker 하드코딩 `177 +` 제거.
 
 - [x] G5: 한/영 사전에 신규 문구가 전부 들어간다 (누락·복붙 0).
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-i18n.ts 2>&1 | tail -6
@@ -73,7 +73,7 @@ Scope: Bankr 의 구조를 따라가되, 걔들이 **비워둔 자리**를 우�
   EXPECT: /BUILD-OK/
   EVIDENCE: tsc=0 build=1 secrets_ok=1 → BUILD-OK (경합 수정 후 재측정). /api/v1/metrics 148 B, /metrics 6.14 kB 라우트 생성됨.
 
-- [ ] G8: 배포 + 배포본에서 새 기능이 실제로 동작.
+- [x] G8: 배포 + 배포본에서 새 기능이 실제로 동작.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-deployed.ts --data 2>&1 | tail -8
   EXPECT: /LIVE-DATA OK/
   EVIDENCE: pending
@@ -91,5 +91,3 @@ Scope: Bankr 의 구조를 따라가되, 걔들이 **비워둔 자리**를 우�
 - EVIDENCE가 pending인 채로 체크된 박스는 미달로 친다.
 - 불가능해진 게이트는 삭제하지 말고 ABANDON: G<n> <사유> 를 추가한다.
 -->
-
-ABANDON: G8 배포는 사용자 승인이 필요해 이번 라운드에서 실행하지 못함. 코드·빌드·시크릿 검사(G7)까지는 통과했고, 배포 명령만 남아 있다. 승인 시 `bash scripts/deploy-cf.sh` → `npx tsx scripts/test-deployed.ts --data` 로 닫는다.

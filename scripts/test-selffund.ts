@@ -135,6 +135,23 @@ async function api() {
     const opPost = await fetch(base, { method: "POST", headers: { authorization: `Bearer ${OP}` } });
     t("운영자 키로 POST → 200", opPost.status === 200, `HTTP ${opPost.status}`);
 
+    console.log("\n운영자 키 자체가 없을 때 — 배포본에서 실제로 열려 있었던 구멍");
+    // identify() 는 AGENT_API_KEY 미설정을 로컬 개발로 보고 익명을 운영자로 통과시킨다.
+    // 조회에는 맞지만 원장에 쓰는 정산에는 아니다. 별도 인스턴스로 확인한다.
+    const P2 = PORT + 1;
+    const { AGENT_API_KEY: _drop, ...rest } = process.env;
+    const envNoKey = { ...rest, USER_API_KEYS: `alice:${USER}`, HL_MODE: "paper" };
+    const srv2 = spawn("npx", ["next", "dev", "-p", String(P2)], { env: envNoKey, stdio: "ignore", detached: true });
+    try {
+      const u2 = `http://127.0.0.1:${P2}/api/v1/selffund`;
+      if (await waitReady(u2)) {
+        t("키 없이 GET 은 여전히 200 (공개 조회)", (await fetch(u2)).status === 200);
+        const r = await fetch(u2, { method: "POST" });
+        t("키 없이 POST 는 503 (정산 비활성)", r.status === 503, `HTTP ${r.status}`);
+        t("이유를 문구로 설명", ((await r.json()) as { error?: string }).error?.includes("AGENT_API_KEY") === true);
+      } else { t("키 없는 인스턴스 기동", false); }
+    } finally { try { process.kill(-srv2.pid!, "SIGKILL"); } catch { /* 종료됨 */ } }
+
     console.log("\n응답 형태");
     const body = await (await fetch(base, { headers: { authorization: `Bearer ${OP}` } })).json() as Record<string, unknown>;
     for (const k of ["earnedUsd", "settledUsd", "pendingUsd", "convertibleCalls", "grantedCalls", "ratio", "usdPerCall", "builderConfigured"]) {

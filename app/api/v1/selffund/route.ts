@@ -32,6 +32,16 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  // identify() 는 AGENT_API_KEY 가 없으면 로컬 개발로 보고 익명을 운영자로 통과시킨다.
+  // 조회 라우트에는 맞는 기본값이지만, 여기는 원장에 쓰는 경로다.
+  // 키가 설정돼 있지 않으면 "운영자가 없는 것"으로 보고 아무도 정산할 수 없게 한다.
+  if (!process.env.AGENT_API_KEY) {
+    return NextResponse.json(
+      { ok: false, error: "settlement disabled: AGENT_API_KEY is not configured" },
+      { status: 503 },
+    );
+  }
+
   // 정산은 운영자만. 아무나 부르면 크레딧 풀을 임의로 움직일 수 있다.
   const id = identify(req);
   if (id === null || id.scope !== "operator") {

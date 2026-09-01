@@ -47,8 +47,8 @@ npx tsx scripts/test-selffund.ts --api  # 15 assertions: endpoint + operator-onl
 
 ```
 280 assets = 177 crypto (main perp dex) + 103 HIP-3
-             HIP-3 = 93 tokenized equities + 10 indices & commodities
-             sample: TSLA NVDA HOOD INTC PLTR COIN META
+             HIP-3 = 92 tokenized equities + 11 indices & commodities
+             sample: TSLA NVDA HOOD INTC PLTR COIN META AAPL
 ```
 
 Reproduce with `npx tsx scripts/test-coverage.ts`. The test also fails if a constant total is reintroduced into the UI — the landing page previously composed `177 + hip3` client-side, and a hardcoded number is not evidence.
