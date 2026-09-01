@@ -34,11 +34,11 @@ Where it lives in the code — three pieces that used to be unconnected:
 | On-chain read | `lib/hl/revenue.ts` | reads cumulative builder rewards from Hyperliquid |
 | Conversion | `lib/selffund.ts` | turns settled fees into LLM credits, **idempotently** |
 
-Settlement is idempotent by ledger: `data/selffund.json` records the cumulative amount already converted, so calling it twice grants nothing the second time. Verify:
+Settlement is idempotent by ledger: `data/selffund.json` records the cumulative amount already converted, so calling it twice grants nothing the second time. Concurrent settlements (an operator double-clicking, or a cron overlapping a manual run) are serialized in-process, so two simultaneous calls grant one payout between them rather than two. Rounding is always down, nothing is granted when the filesystem is read-only, and a shrinking on-chain figure never claws credits back.
 
 ```bash
-npx tsx scripts/test-selffund.ts        # 24 assertions, incl. double-spend attempts
-npx tsx scripts/test-selffund.ts --api  # endpoint + operator-only settlement
+npx tsx scripts/test-selffund.ts        # 25 assertions, incl. double-spend and race attempts
+npx tsx scripts/test-selffund.ts --api  # 15 assertions: endpoint + operator-only settlement
 ```
 
 ### Coverage, measured rather than claimed

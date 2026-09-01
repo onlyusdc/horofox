@@ -70,14 +70,24 @@ async function unit() {
     const q1 = await Q.peek(SF.POOL_SUBJECT);
     t("크레딧이 정확히 5,000 (중복 아님)", q1.credits === 5000, `credits=${q1.credits}`);
 
+    console.log("\n동시 정산 — 버튼 두 번, 크론과 수동이 겹칠 때");
+    // 직렬화 전에는 두 호출이 같은 미정산액을 보고 각자 5,000회를 부여했다.
+    fakeEarned = 20; // 미정산 $10 (이미 $10 정산됨)
+    const [c1, c2] = await Promise.all([SF.settleSelfFund(rev), SF.settleSelfFund(rev)]);
+    t("동시 호출의 합이 1회분과 같다", c1.granted + c2.granted === 5000, `${c1.granted}+${c2.granted}`);
+    const qr = await Q.peek(SF.POOL_SUBJECT);
+    t("크레딧 10,000 (이중 지급 아님)", qr.credits === 10000, `credits=${qr.credits}`);
+    const after = await SF.peekSelfFund(rev);
+    t("정산 후 미정산 0", after.pendingUsd === 0, `$${after.pendingUsd}`);
+
     console.log("\n수수료가 더 들어오면");
-    fakeEarned = 25; // +$15
+    fakeEarned = 35; // +$15
     const s2 = await SF.peekSelfFund(rev);
     t("증가분만 미정산으로 잡힘", Math.abs(s2.pendingUsd - 15) < 1e-9, `$${s2.pendingUsd}`);
     const r3 = await SF.settleSelfFund(rev);
     t("증가분만큼만 추가 부여 (7,500회)", r3.granted === 7500, `granted=${r3.granted}`);
     const q2 = await Q.peek(SF.POOL_SUBJECT);
-    t("누적 크레딧 12,500", q2.credits === 12500, `credits=${q2.credits}`);
+    t("누적 크레딧 17,500 (5,000+5,000+7,500)", q2.credits === 17500, `credits=${q2.credits}`);
 
     console.log("\n온체인 값이 줄어들면 (주소 교체 등)");
     fakeEarned = 5; // 정산액보다 작아짐

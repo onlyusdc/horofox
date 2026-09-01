@@ -111,8 +111,21 @@ export async function peekSelfFund(revenue: RevenueReader = builderRevenue): Pro
  * **멱등**: 이미 정산한 누적액(`settledUsd`)을 원장에 남겨 두 번 세지 않는다.
  * 한 번 더 호출해도 새 수수료가 들어오지 않았으면 0회를 부여한다.
  */
-export async function settleSelfFund(
+// 정산은 read-modify-write 다. 운영자가 버튼을 두 번 누르거나 크론과 겹치면
+// 두 호출이 같은 미정산액을 보고 각자 크레딧을 부여한다. 그래서 직렬화한다.
+// ponytail: 프로세스 내 직렬화. 인스턴스가 여러 개면 원장을 공유 저장소로 올려야 한다.
+let settleChain: Promise<unknown> = Promise.resolve();
+
+export function settleSelfFund(
   revenue: RevenueReader = builderRevenue,
+): Promise<SelfFundState & { granted: number }> {
+  const run = settleChain.then(() => settleOnce(revenue), () => settleOnce(revenue));
+  settleChain = run.catch(() => undefined);
+  return run;
+}
+
+async function settleOnce(
+  revenue: RevenueReader,
 ): Promise<SelfFundState & { granted: number }> {
   const state = await peekSelfFund(revenue);
   const calls = state.convertibleCalls;
