@@ -37,7 +37,7 @@ export const DICT = {
     en: "Hyperliquid's HIP-3 markets list tokenized stocks, indices and commodities. This agent reaches every one of them and signs real orders.",
   },
   "hero.cta.try": { ko: "터미널 열어보기", en: "Open the terminal" },
-  "hero.cta.code": { ko: "GitHub에서 코드 보기", en: "Read the code on GitHub" },
+  "hero.cta.code": { ko: "API 직접 호출해보기", en: "Hit the API yourself" },
   "hero.note": {
     ko: "공개 데모는 읽기 전용입니다 — 시세·자산 조회만 됩니다. 거래는 직접 호스팅해야 합니다.",
     en: "The public demo is read-only — quotes and market data only. Trading requires self-hosting.",

@@ -40,7 +40,7 @@ export default function Landing() {
         <p className="sub">{t("hero.sub")}</p>
         <div className="cta-row">
           <Link href="/terminal" className="cta-primary">{t("hero.cta.try")}</Link>
-          <a href="https://github.com/onlyusdc/onlyusdc" className="cta-ghost">{t("hero.cta.code")}</a>
+          <a href="/api/v1/metrics" className="cta-ghost">{t("hero.cta.code")}</a>
         </div>
         <p className="hero-note">{t("hero.note")}</p>
       </section>
