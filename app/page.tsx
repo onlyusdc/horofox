@@ -25,7 +25,7 @@ export default function Landing() {
   return (
     <main className="landing">
       <nav className="nav">
-        <span className="brand">agent-terminal</span>
+        <span className="brand">onlyusdc</span>
         <span className="nav-links">
           <LangSwitch />
           <Link href="/metrics">{t("nav.metrics")}</Link>
@@ -40,7 +40,7 @@ export default function Landing() {
         <p className="sub">{t("hero.sub")}</p>
         <div className="cta-row">
           <Link href="/terminal" className="cta-primary">{t("hero.cta.try")}</Link>
-          <a href="https://github.com/bigrender/agent-terminal" className="cta-ghost">{t("hero.cta.code")}</a>
+          <a href="https://github.com/onlyusdc/onlyusdc" className="cta-ghost">{t("hero.cta.code")}</a>
         </div>
         <p className="hero-note">{t("hero.note")}</p>
       </section>

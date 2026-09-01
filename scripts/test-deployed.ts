@@ -7,7 +7,7 @@ const DATA_ONLY = process.argv.includes("--data");
 async function main() {
   let fail = 0;
   const t = (n: string, ok: boolean, x = "") => { if (!ok) fail++; console.log(`  ${ok ? "✓" : "✗"} ${n}${x ? "  " + x : ""}`); };
-  const get = (p: string) => fetch(`${BASE}${p}`, { headers: { "user-agent": "agent-terminal-selftest" } });
+  const get = (p: string) => fetch(`${BASE}${p}`, { headers: { "user-agent": "onlyusdc-selftest" } });
 
   console.log(`대상: ${BASE}\n`);
 

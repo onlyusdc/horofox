@@ -62,7 +62,7 @@
   <tr><td>체결 웹훅</td><td><code>WEBHOOK_URL</code> 설정 시 스왑/퍼펫/런치 매매 이벤트 POST — Bankr 부품 마지막 퍼즐. 실패해도 본 거래 무영향</td><td class="ok">✅ 완료</td></tr>
   <tr><td>트레이더 대시보드 <code>/dashboard</code></td><td>잔고·퍼펫 포지션(청산 버튼)·런치패드 매매·스왑 폼·체결 내역, 5초 폴링 — REST API만으로 동작(코어 무수정). 체결 저널(<code>data/trades.json</code> + <code>GET /api/v1/trades</code>) 포함</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
   <tr><td><strong>수익 엔진 (플라이휠)</strong></td><td>① 스왑 수수료 0.5% 자동 적립 ② 게이트웨이 크레딧 과금(토큰량 × 요율, 잔액 없으면 402, 데모 탑업) ③ <code>GET /api/v1/revenue</code>: 총수익 − LLM비 = 순수익 + 흑자/적자 판정. 대시보드 "수익 엔진" 카드에 실시간 표시 — Bankr의 "죽지 않는 봇"을 숫자로 구현</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
-  <tr><td>우리만의 git</td><td>git 초기화 + 시크릿 제외(.env.local 커밋 금지) + 초기 커밋 → 비공개 원격 <code>github.com/bigrender/agent-terminal</code> 푸시</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
+  <tr><td>우리만의 git</td><td>git 초기화 + 시크릿 제외(.env.local 커밋 금지) + 초기 커밋 → 비공개 원격 <code>(비공개 원격)</code> 푸시</td><td class="ok">✅ 완료 (2026-08-31)</td></tr>
   <tr><td>과금 가시성</td><td><code>/api/gateway/usage</code> — 게이트웨이 키별 호출·토큰 사용량 집계 (유료화의 전제)</td><td class="ok">✅ 완료</td></tr>
   <tr><td>배포 패키징</td><td><code>Dockerfile</code> + <code>.dockerignore</code> — 어느 서버든 <code>docker build</code> 한 줄로 프로덕션 기동</td><td class="ok">✅ 완료</td></tr>
   <tr><td>HTML 리포트</td><td>이 문서 (<code>public/report.html</code> → <a href="/report.html">localhost:3002/report.html</a>)</td><td class="ok">✅ 완료</td></tr>

@@ -78,7 +78,7 @@ async function main() {
 
   console.log("\n훅 자체");
   t("헤드라인이 접근을 말한다 (수익 아님)", landing.includes("hero.title"));
-  t("검증 가능성을 내세운다", landing.includes("github.com/bigrender"));
+  t("검증 가능성을 내세운다", landing.includes("github.com/onlyusdc"));
   t("HIP-3 자산을 구체적으로 든다", /NVDA|S&P500|SK하이닉스|SK Hynix/.test(await fs.readFile("lib/i18n.ts", "utf8")));
 
   console.log("\n실제 자산 수가 주장과 맞는가");

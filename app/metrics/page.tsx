@@ -32,7 +32,7 @@ export default function MetricsPage() {
   return (
     <main className="landing">
       <nav className="nav">
-        <Link href="/" className="brand">agent-terminal</Link>
+        <Link href="/" className="brand">onlyusdc</Link>
         <span className="nav-links">
           <LangSwitch />
           <Link href="/terminal" className="nav-cta">{t("nav.terminal")}</Link>
