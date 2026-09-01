@@ -76,7 +76,7 @@ Scope: Bankr 의 구조를 따라가되, 걔들이 **비워둔 자리**를 우�
 - [x] G8: 배포 + 배포본에서 새 기능이 실제로 동작.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && npx tsx scripts/test-deployed.ts --data 2>&1 | tail -8
   EXPECT: /LIVE-DATA OK/
-  EVIDENCE: pending
+  EVIDENCE: 배포 완료 (Version b66d16f2). LIVE-DATA OK. 신규 표면 직접 확인: /api/v1/metrics 200 → 280=177+103(주식 92/지수·원자재 11) + disclaimer, /metrics 200, 랜딩 200, /api/v1/selffund GET 200. **배포본에서 미인증 POST 정산이 200 이던 구멍을 발견 → 503 으로 막고 재배포 후 재확인.**
 
 - [x] G9: 플레이스홀더 0 + 커밋 완료.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'P=$(grep -rnE "TODO|FIXME|not implemented" lib/ scripts/ app/ 2>/dev/null | wc -l | tr -d " "); D=$(git status --porcelain | grep -c . | tr -d " "); echo "placeholders=$P dirty=$D"; [ "$P" = 0 ] && [ "$D" = 0 ] && echo CLEAN || echo DIRTY'
