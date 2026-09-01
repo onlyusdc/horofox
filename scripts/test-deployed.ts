@@ -1,7 +1,7 @@
 // G4/G5 — 배포된 사이트가 실제로 뜨고, 진짜 Hyperliquid 데이터를 서빙하는가.
 import "../lib/env";
 
-const BASE = process.env.DEPLOY_URL ?? "https://agent-terminal.xpost.workers.dev";
+const BASE = process.env.DEPLOY_URL ?? "https://onlyusdc.com";
 const DATA_ONLY = process.argv.includes("--data");
 
 async function main() {

@@ -9,6 +9,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "observability": { "enabled": true },
+  // 커스텀 도메인. workers.dev 서브도메인은 계정 이름이 드러나므로 실제 주소는 여기로 낸다.
+  // custom_domain 이면 wrangler 가 DNS 레코드까지 만들어 준다 (같은 계정의 zone 이어야 한다).
+  "routes": [
+    { "pattern": "onlyusdc.com", "custom_domain": true },
+    { "pattern": "www.onlyusdc.com", "custom_domain": true }
+  ],
   // 비밀이 아닌 설정. 실제 API 키는 `wrangler secret put OPENAI_API_KEY` 로만 넣는다.
   "vars": {
     "OPENAI_BASE_URL": "https://api.z.ai/api/coding/paas/v4",
