@@ -11,7 +11,8 @@
     "cli": "tsx bin/cli.ts",
     "test:tools": "tsx scripts/test-tools.ts",
     "test:parity": "tsx scripts/test-parity.ts",
-    "test:e2e": "tsx scripts/test-agent-e2e.ts"
+    "test:e2e": "tsx scripts/test-agent-e2e.ts",
+    "bot:social": "tsx bot/social/run.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.0",

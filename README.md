@@ -66,6 +66,7 @@ https://github.com/user-attachments/assets/demo-placeholder
 - **Chat terminal** (`/terminal`) — natural language → tool calls (price, swap, perps, launchpad, portfolio)
 - **Trader dashboard** (`/dashboard`) — balances, live-mark positions with one-click close, bonding-curve launchpad, trade journal
 - **Channel bots** — Telegram + Discord bots that answer mentions (group-chat dealer)
+- **Social bot** — Farcaster and X. Posts measured market observations a few times a day and answers mentions, so a reply becomes a public ad. See [Social bot](#social-bot).
 - **REST API** (`/api/v1/*`) — call the tools directly, optional bearer auth
 - **CLI** — `npm run cli -- price eth`
 - **Hyperliquid perps (paper)** — real-time mid prices, positions with live PnL
@@ -132,3 +133,43 @@ This is a demonstration of agent architecture, not an investment product. Tradin
 ## License
 
 [MIT](LICENSE)
+
+## Social bot
+
+Telegram and Discord are pull channels — someone has to find you and join. Farcaster and X are push
+channels: every reply is public. That is the difference between having a product and having users.
+
+```bash
+npm run bot:social -- --channel all --once          # dry run: prints what it would post
+SOCIAL_DRY_RUN=0 npm run bot:social -- --live       # actually posts
+```
+
+Dry run is the default and `--live` alone is not enough — you must also set `SOCIAL_DRY_RUN=0`.
+Publishing cannot be undone, so turning it on is a deliberate two-key action.
+
+**Everything it posts is measured.** `lib/insights.ts` reads funding rates and 24h moves straight from
+Hyperliquid HIP-3, and `bot/social/templates.ts` may only interpolate fields off that object — a template
+cannot invent a number. Posts also pass a banned-phrase check (`guaranteed`, `risk-free`, `100x`, …),
+because nobody reviews them before they go out.
+
+### Cost, and the cap that enforces it
+
+| Channel | Read a mention | Post | Post with a link |
+| --- | --- | --- | --- |
+| Farcaster (Neynar) | free tier | free tier | free tier |
+| X | $0.005 | $0.015 | $0.20 |
+
+X moved to pay-per-use in February 2026 and has no free tier. A link makes a post **13× more expensive**,
+which is why `link` is a separate argument rather than something you concatenate into the text — the cost
+is known before the call is made.
+
+`lib/social/budget.ts` keeps a ledger in `data/social-budget.json` and refuses to spend past
+`SOCIAL_MONTHLY_USD_CAP` (default **$5**). Concurrent sends are serialized, so two replies cannot both
+read the same balance and slip past the cap. If the filesystem is read-only, paid actions are refused
+rather than performed unrecorded.
+
+```bash
+npx tsx scripts/test-social-budget.ts   # cap, race, read-only refusal
+npx tsx scripts/test-social.ts          # dry-run default, no invented numbers, no promises
+npx tsx scripts/test-insights.ts        # every posted figure is measured
+```
