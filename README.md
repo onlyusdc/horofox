@@ -23,6 +23,7 @@ you trade  →  a builder code rides on the order (0.1%)
 Why this is defensible:
 
 - **The protocol pays it, not a middleman.** Builder codes are a Hyperliquid primitive, so it isn't the kind of fee a competitor can undercut to 0% as a growth tactic.
+- **It is now the standard way to integrate.** Over two months, three venues shipped on builder codes: [VALR](https://blog.valr.com/blog/valr-launches-200-hyperliquid-perps-markets), Africa's largest crypto exchange by volume and *"the first time a centralized exchange has integrated Hyperliquid directly"*; [Oku](https://x.com/okutrade/status/2079919154149171308); and Coinbase's [Base app](https://x.com/baseapp/status/2090122188074491951). We are on the same rail an exchange chose.
 - **No token to launch.** No contract, no audit, no unlock schedule, no cycle risk.
 - **Bankr routes Hyperliquid trades and doesn't collect this.** Their Hyperliquid reference (`skills/bankr/references/hyperliquid.md`, 192 lines) mentions "builder" exactly once — in the phrase *"HIP-3 builder-deployed dexes"* — and never as a fee they take.
 
@@ -46,12 +47,30 @@ npx tsx scripts/test-selffund.ts --api  # 15 assertions: endpoint + operator-onl
 `GET /api/v1/metrics` counts what we can actually place orders against, at request time:
 
 ```
-280 assets = 177 crypto (main perp dex) + 103 HIP-3
-             HIP-3 = 92 tokenized equities + 11 indices & commodities
-             sample: TSLA NVDA HOOD INTC PLTR COIN META AAPL
+311 assets = 177 crypto (main perp dex) + 134 HIP-3
+             HIP-3 = 115 tokenized equities + 19 indices & commodities
+             across 4 dexes: xyz, io, mkts, para
+             sample: TSLA NVDA HOOD INTC PLTR COIN META AAPL — and ANTH on io
 ```
 
 Reproduce with `npx tsx scripts/test-coverage.ts`. The test also fails if a constant total is reintroduced into the UI — the landing page previously composed `177 + hip3` client-side, and a hardcoded number is not evidence.
+
+### Who else is doing this
+
+[Talis](https://talis.trade) is the closest thing to a direct competitor and is ahead of us on
+several axes worth stating plainly: it charges roughly **0.028% per trade against our 0.1%**, ships
+iOS and Android apps with Apple Pay and bank transfers, and already covers prediction markets and
+pre-IPO names. It also says *"There is no Talis token, and there never has been"* — so "we mint
+nothing" is table stakes, not a differentiator.
+
+Our 0.1% sits at Hyperliquid's builder-fee ceiling, so we cannot win on price. What is actually
+ours: this repo is **open source and self-hostable**, the API is **x402-priced so an agent can pay
+for it without an account**, and the same agent answers over Telegram, Discord, CLI, REST and
+Farcaster rather than one app. If none of those matter to you, Talis is probably the better product
+today.
+
+[StableJack](https://stablejack.xyz) overlaps on the chat interface but sells analysis on a
+subscription ($0–$80/mo), not order execution.
 
 ### Public metrics never sum real and paper
 

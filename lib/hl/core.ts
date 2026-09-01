@@ -295,9 +295,20 @@ export async function loadAssets(
 
 /**
  * 우리가 읽는 HIP-3 dex. 거래량 순.
- * `xyz` 가 주식·지수·원자재 퍼프의 사실상 전부다 (24h $17억, 활성 자산 103종).
+ *
+ * 한동안 `xyz` 하나만 읽었는데, perpDexs 를 세어보니 10개가 있었고 그중 셋이 살아 있었다.
+ * 실측(2026-09-01, 24h 거래대금 / 활성 자산):
+ *   xyz  $2.31B / 103종  — 주식·지수·원자재 퍼프의 대부분
+ *   io   $67.7M /   4종  — 비상장 기업 (ANTH, SNDK, NBIS, GPRO)
+ *   mkts $10.8M /   4종  — 지수·채권 (US500, USTECH, USBOND, SMALL2000)
+ *   para  $3.5M /  23종  — 개별주 + 도미넌스 + 10Y
+ *
+ * `hyna` 는 뺀다 — 2026-08-31 발표로 폐쇄가 진행 중이다. 넣으면 사라질 때 깨진다.
+ * 나머지(flx·vntl·km·abcd·cash)는 활성 자산 0종이라 넣을 이유가 없다.
+ *
+ * 순서가 곧 우선순위다 — loadAssets 가 짧은 심볼을 선점 등록하므로 거래량 큰 dex 를 앞에 둔다.
  */
-export const HIP3_DEXES = ["xyz"] as const;
+export const HIP3_DEXES = ["xyz", "io", "mkts", "para"] as const;
 
 /** 유저가 내 builder 에게 승인한 최대 요율(퍼센트). 미승인이면 null. */
 export async function getApprovedFeePercent(

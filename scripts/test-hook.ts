@@ -39,7 +39,7 @@ const REQUIRED_README = [
   ["수익을 약속하지 않는다", "README 수익 미약속"],
   ["−5.65%", "README 백테스트 수치"],
   ["거래 도구지 전략이 아니다", "포지셔닝"],
-  ["280종", "자산 도달 범위"],
+  ["311종", "자산 도달 범위"],
 ];
 
 async function main() {
@@ -90,7 +90,7 @@ async function main() {
   const total = uniq.size;
   const main = [...uniq].filter((a) => a.dex === null).length;
   const xyz = [...uniq].filter((a) => a.dex === "xyz").length;
-  t(`"280종" 주장이 실측(${total}종)과 ±20 이내`, Math.abs(total - 280) <= 20, `main=${main} xyz=${xyz}`);
+  t(`"311종" 주장이 실측(${total}종)과 ±20 이내`, Math.abs(total - 311) <= 20, `main=${main} hip3=${[...uniq].filter((a) => a.dex !== null).length}`);
   t(`"코어 177" 주장이 실측(${main})과 ±15 이내`, Math.abs(main - 177) <= 15);
 
   console.log(fail === 0 ? "\nHOOK OK — 수익 약속 0건, 고지 완비" : `\nHOOK FAIL — ${fail}건`);

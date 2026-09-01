@@ -11,8 +11,16 @@ import { loadAssets, type AssetMeta } from "./hl/core";
 
 /** 이 심볼들은 주식이 아니라 지수·원자재·FX 다. 분류를 정직하게 하기 위한 목록. */
 const NON_EQUITY = new Set([
+  // 지수
   "SP500", "XYZ100", "NDX", "NASDAQ", "DJI", "RUSSELL", "VIX", "DAX", "NIKKEI", "KOSPI", "HSI", "FTSE",
+  "US500", "USTECH", "SMALL2000",
+  // 채권·금리
+  "USBOND", "10Y", "2Y", "30Y",
+  // 크립토 도미넌스 지수 — 회사가 아니다
+  "TOTAL2", "TOTAL3", "OTHERS", "BTCD", "ETHD",
+  // 원자재
   "GOLD", "SILVER", "OIL", "WTI", "BRENT", "COPPER", "NATGAS", "PLATINUM", "PALLADIUM", "URANIUM",
+  // FX
   "EUR", "JPY", "GBP", "KRW", "CNY", "CHF", "AUD", "CAD", "MXN", "BRL",
 ]);
 

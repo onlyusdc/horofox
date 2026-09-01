@@ -54,7 +54,7 @@ export const DICT = {
   "ticker.fee": { ko: "거래 수수료", en: "trading fee" },
 
   // ── 랜딩: 기능 ────────────────────────────────────
-  "feat.assets.title": { ko: "토큰화 주식·원자재 280종", en: "280 tokenized markets" },
+  "feat.assets.title": { ko: "토큰화 주식·원자재 311종", en: "311 tokenized markets" },
   "feat.assets.desc": {
     ko: "NVDA · S&P500 · 금 · 브렌트유 · SK하이닉스 — HIP-3 빌더 시장까지. 대부분의 툴은 코어 177종만 봅니다.",
     en: "NVDA · S&P500 · gold · Brent · SK Hynix — including HIP-3 builder markets. Most tools only see the core 177.",
