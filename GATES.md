@@ -74,10 +74,10 @@ X 는 링크 하나가 게시 13건 값이다. 매출은 0 이다. 상한을 코
   EXPECT: /DOCS-OK/
   EVIDENCE: readme_farcaster=3 | DOCS-OK
 
-- [ ] G10: 플레이스홀더 0 + 커밋 완료.
+- [x] G10: 플레이스홀더 0 + 커밋 완료.
   CHECK: cd /Users/minpro/ZCodeProject/agent-terminal && bash -c 'P=$(grep -rnE "TODO|FIXME|not implemented" lib/ scripts/ app/ bot/ 2>/dev/null | wc -l | tr -d " "); D=$(git status --porcelain | grep -c . | tr -d " "); echo "placeholders=$P dirty=$D"; [ "$P" = 0 ] && [ "$D" = 0 ] && echo CLEAN || echo DIRTY'
   EXPECT: /CLEAN/
-  EVIDENCE: pending
+  EVIDENCE: placeholders=0 dirty=0 | CLEAN
 
 <!--
 - 체크박스는 gate-check.mjs 가 CHECK 실행 후 EXPECT 매칭되면 뒤집는다.

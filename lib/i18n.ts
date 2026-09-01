@@ -66,8 +66,8 @@ export const DICT = {
   },
   "feat.fee.title": { ko: "수수료를 코드로 확인", en: "A fee you can read in the source" },
   "feat.fee.desc": {
-    ko: "거래액의 0.1% 하나. 구독료도 토큰도 없습니다.",
-    en: "0.1% of notional, and nothing else. No token, no mandatory subscription.",
+    ko: "우리가 받는 건 거래액의 0.1% 하나. 구독료도 토큰도 없습니다. 거래소 수수료는 별도입니다.",
+    en: "0.1% of notional is everything we charge — no token, no subscription. Hyperliquid's own trading fee applies on top.",
   },
   "feat.keys.title": { ko: "키는 내 서버에", en: "Your keys, your server" },
   "feat.keys.desc": {
@@ -108,8 +108,8 @@ export const DICT = {
   "price.title": { ko: "어떻게 돈을 버나", en: "How this makes money" },
   "price.fee": { ko: "거래액의 builder fee. 그게 전부입니다.", en: "A builder fee on notional. That is the whole model." },
   "price.note": {
-    ko: "구독료 없음, 토큰 없음, 선불 없음. 거래가 없으면 0.1% × 0 = $0 입니다.",
-    en: "No token, no prepayment. If nobody trades, 0.1% × 0 = $0.",
+    ko: "구독료 없음, 토큰 없음, 선불 없음. 거래가 없으면 0.1% × 0 = $0 입니다. HIP-3 시장은 배포자 수수료 배율이 붙어 거래소 수수료가 일반 퍼프보다 높습니다.",
+    en: "No token, no prepayment. If nobody trades, 0.1% × 0 = $0. HIP-3 markets carry a deployer fee scale, so the exchange fee there is higher than on a standard perp.",
   },
   "price.x402": { ko: "에이전트용 유료 API", en: "Paid API for agents" },
   "price.x402desc": {
