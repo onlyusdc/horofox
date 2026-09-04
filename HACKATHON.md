@@ -12,12 +12,13 @@ Source: <https://ethglobal.com/rules>
 
 ## The line
 
-**Everything up to and including commit `0b5b668` (2026-09-02) is pre-existing work.**
+**Everything up to and including commit `586cbca` (2026-09-02) is pre-existing work** — 22 commits.
+Everything after it was made on or after 2026-09-04, when the event began.
 It was written before ETHOnline 2026 began on 2026-09-04.
 
 ```bash
-git log --oneline 0b5b668        # pre-existing
-git log --oneline 0b5b668..HEAD  # built during the hackathon
+git log --oneline 586cbca        # pre-existing
+git log --oneline 586cbca..HEAD  # built during the hackathon
 ```
 
 Judges should read the second command's output as the submission. Everything in the first is context.
@@ -25,7 +26,7 @@ Judges should read the second command's output as the submission. Everything in 
 ## What existed before the event
 
 The repository was an open-source agent that trades Hyperliquid perpetuals through chat, plus the
-plumbing around it. Concretely, as of `0b5b668`:
+plumbing around it. Concretely, as of `586cbca`:
 
 | Area | Files | What it did |
 | --- | --- | --- |
