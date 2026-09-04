@@ -21,7 +21,7 @@ export type Draft = {
   link?: string;
 };
 
-const SITE = process.env.PUBLIC_SITE_URL ?? "https://onlyusdc.com";
+const SITE = process.env.PUBLIC_SITE_URL ?? "https://horofox.com";
 
 /**
  * 지금 시점의 관찰로 초안을 만든다.

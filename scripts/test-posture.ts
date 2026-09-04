@@ -2,7 +2,7 @@
 // 인증이 열려 있는데 조용하면, 운영자가 모르고 지나간다.
 import "../lib/env";
 
-const BASE = process.env.DEPLOY_URL ?? "https://onlyusdc.com";
+const BASE = process.env.DEPLOY_URL ?? "https://horofox.com";
 
 async function main() {
   let fail = 0;

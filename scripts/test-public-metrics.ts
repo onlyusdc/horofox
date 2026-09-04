@@ -66,7 +66,7 @@ async function main() {
     t("개인 데이터 없음", !/users?\.json|agentKey|0x[0-9a-fA-F]{40,}/.test(JSON.stringify(body ?? {})));
 
     const html = await fetch(`http://127.0.0.1:${PORT}/metrics`).then((r) => r.text()).catch(() => "");
-    t("/metrics 페이지가 뜬다", html.includes("onlyusdc"), `${html.length} bytes`);
+    t("/metrics 페이지가 뜬다", html.includes("horofox"), `${html.length} bytes`);
   } finally { kill(); }
 
   console.log(fail === 0 ? "\nMETRICS OK — 실거래와 페이퍼가 분리됨" : `\nMETRICS FAIL — ${fail}건`);

@@ -25,7 +25,7 @@ export default function Landing() {
   return (
     <main className="landing">
       <nav className="nav">
-        <span className="brand">onlyusdc</span>
+        <span className="brand">horofox</span>
         <span className="nav-links">
           <LangSwitch />
           <Link href="/metrics">{t("nav.metrics")}</Link>

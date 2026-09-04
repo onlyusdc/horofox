@@ -145,7 +145,7 @@ async function handleMentions(ch: Channel, state: State): Promise<void> {
     const trimmed = answer.trim();
     const fits = trimmed.length <= MAX_LEN[ch.name] - 40;
     const text = fits ? trimmed : "That needs more room than this thread allows — the full answer is in the terminal.";
-    const link = fits ? undefined : `${process.env.PUBLIC_SITE_URL ?? "https://onlyusdc.com"}/terminal`;
+    const link = fits ? undefined : `${process.env.PUBLIC_SITE_URL ?? "https://horofox.com"}/terminal`;
 
     try {
       const ok = await send(ch, text, link, m);

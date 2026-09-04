@@ -54,7 +54,7 @@ export default function Chat({ hasKey }: { hasKey: boolean }) {
     <div className="terminal">
       <header>
         <span className="dot" />
-        <h1>onlyusdc</h1>
+        <h1>horofox</h1>
         <span>— 자연어 트레이딩 에이전트 (페이퍼 트레이딩)</span>
       </header>
 

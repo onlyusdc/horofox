@@ -98,7 +98,7 @@ export default function Dashboard() {
   return (
     <main className="dash">
       <nav className="nav">
-        <span className="brand">onlyusdc / dashboard</span>
+        <span className="brand">horofox / dashboard</span>
         <span className="nav-links">
           <Link href="/">랜딩</Link>
           <Link href="/terminal">터미널</Link>

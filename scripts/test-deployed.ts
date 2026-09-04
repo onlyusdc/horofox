@@ -1,13 +1,13 @@
 // G4/G5 — 배포된 사이트가 실제로 뜨고, 진짜 Hyperliquid 데이터를 서빙하는가.
 import "../lib/env";
 
-const BASE = process.env.DEPLOY_URL ?? "https://onlyusdc.com";
+const BASE = process.env.DEPLOY_URL ?? "https://horofox.com";
 const DATA_ONLY = process.argv.includes("--data");
 
 async function main() {
   let fail = 0;
   const t = (n: string, ok: boolean, x = "") => { if (!ok) fail++; console.log(`  ${ok ? "✓" : "✗"} ${n}${x ? "  " + x : ""}`); };
-  const get = (p: string) => fetch(`${BASE}${p}`, { headers: { "user-agent": "onlyusdc-selftest" } });
+  const get = (p: string) => fetch(`${BASE}${p}`, { headers: { "user-agent": "horofox-selftest" } });
 
   console.log(`대상: ${BASE}\n`);
 

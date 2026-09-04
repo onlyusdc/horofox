@@ -6,7 +6,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { DEFAULT_LANG, LANGS, LANG_LABEL, t as translate, type DictKey, type Lang } from "@/lib/i18n";
 
-const KEY = "onlyusdc.lang";
+const KEY = "horofox.lang";
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (k: DictKey, vars?: Record<string, string | number>) => string };
 const LangCtx = createContext<Ctx>({ lang: DEFAULT_LANG, setLang: () => {}, t: (k) => k as string });

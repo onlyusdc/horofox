@@ -1,4 +1,4 @@
-# onlyusdc
+# horofox
 
 **An open-source, self-hostable alternative to [Bankr](https://bankr.bot)** — an AI agent you talk to in plain language: price checks, swaps, perpetuals and token launches, from a web terminal, chat bots, CLI, or REST API. Unlike Bankr, it reaches Hyperliquid's HIP-3 markets, so "buy Nvidia" is a real tokenized equity perp rather than a meme coin named after one.
 
@@ -87,8 +87,8 @@ https://github.com/user-attachments/assets/demo-placeholder
 ## Quick start
 
 ```bash
-git clone https://github.com/onlyusdc/onlyusdc.git
-cd onlyusdc
+git clone https://github.com/horofox/horofox.git
+cd horofox
 npm install
 cp .env.example .env.local   # set OPENAI_API_KEY (any OpenAI-compatible endpoint works, e.g. Z.ai GLM)
 npm run dev -- -p 3000       # landing /, terminal /terminal, dashboard /dashboard
@@ -103,7 +103,7 @@ npm run cli -- portfolio     # CLI
 npm run test:tools           # tool unit tests
 npm run test:parity          # integration tests (live Hyperliquid + RPC)
 npm run test:e2e             # full LLM agent E2E (needs API key)
-docker build -t onlyusdc .
+docker build -t horofox .
 ```
 
 ## Architecture
