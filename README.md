@@ -87,7 +87,7 @@ https://github.com/user-attachments/assets/demo-placeholder
 ## Quick start
 
 ```bash
-git clone https://github.com/horofox/horofox.git
+git clone https://github.com/onlyusdc/horofox.git
 cd horofox
 npm install
 cp .env.example .env.local   # set OPENAI_API_KEY (any OpenAI-compatible endpoint works, e.g. Z.ai GLM)
@@ -140,6 +140,17 @@ This is a demonstration of agent architecture, not an investment product. Tradin
 ## License
 
 [MIT](LICENSE)
+
+## Hackathon provenance (ETHOnline 2026 — Continuity track)
+
+This project predates ETHOnline 2026 and is being extended during the event. [`HACKATHON.md`](HACKATHON.md)
+discloses exactly what existed before (everything up to commit `586cbca`, 2026-09-02) and what is being
+built during the event:
+
+```bash
+git log --oneline 586cbca        # pre-existing work
+git log --oneline 586cbca..HEAD  # built during ETHOnline 2026
+```
 
 ## Social bot
 
